@@ -1,5 +1,4 @@
-Solutions for tasks 1-3 can be found inside the code
-Below there is solution for Task 4
+Solutions for tasks 1-3 can be found inside the code. Solution for Task 4 can be found below.
 # Task 4.1
 ## Compare generics in .NET with Java generics
 # Task 4.2
@@ -11,7 +10,8 @@ Most notable examples include:_**
 * XPath is a declarative language for navigating XML documents
 * GraphQL is a data query language developed by Facebook as an alternate to REST and ad-hoc webservice architectures
 * SPARQL is a query language for RDF graphs
-* Datalog is a query language for deductive databases
+* Datalog is a query language for deductive databases    
+  
 **_Other examples include:_**
 * Atomese, the graph query language for the OpenCog graph database, the AtomSpace
 * Attempto Controlled English is a query language that is also a controlled natural language
