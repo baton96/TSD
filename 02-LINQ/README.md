@@ -1,10 +1,10 @@
 Solutions for tasks 1-3 can be found inside the code. Solution for Task 4 can be found below.
 # Task 4.1
 ## Compare generics in .NET with Java generics
+
 # Task 4.2
 ## Do you know about any other query language?
-**_There are many query languages used to make queries in databases and information systems
-Most notable examples include:_**
+**_There are many query languages used to make queries in databases and information systems. Most notable examples include:_**
 * SQL is a well known query language and data manipulation language for relational databases
 * XQuery is a query language for XML data sources
 * XPath is a declarative language for navigating XML documents

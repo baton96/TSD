@@ -1,0 +1,1330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" media="screen" href="/~d/styles/rss2full.xsl"?><?xml-stylesheet type="text/css" media="screen" href="http://feeds.feedburner.com/~d/styles/itemcontent.css"?><rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0" version="2.0">
+
+<channel>
+	<title>PowerShell.org</title>
+	
+	<link>http://powershell.org/wp</link>
+	<description>A Community for PowerShell People</description>
+	<lastBuildDate>Wed, 08 May 2013 15:29:51 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.org/?v=3.5.1</generator>
+		<atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="self" type="application/rss+xml" href="http://feeds.feedburner.com/powershellfeed" /><feedburner:info uri="powershellfeed" /><atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="hub" href="http://pubsubhubbub.appspot.com/" /><item>
+		<title>Notes on Beginner Event 2</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/xGHKD0cJY5o/</link>
+		<comments>http://powershell.org/wp/2013/05/08/notes-on-beginner-event-2/#comments</comments>
+		<pubDate>Wed, 08 May 2013 15:29:51 +0000</pubDate>
+		<dc:creator>Art Beane</dc:creator>
+				<category><![CDATA[PowerShell for Admins]]></category>
+		<category><![CDATA[Computername]]></category>
+		<category><![CDATA[Select-Object]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4350</guid>
+		<description><![CDATA[Â First of all, congratulations! It looks to me like a lot of learning is going on; the 2nd event entries look really good to me. I especially liked the way a number of you built up a one-liner by starting with aÂ Get-WmiObject Win32_ComputerSystem -ComputerName (Get-Content file.txt) and piping it into Select-Object to generate the data.<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/08/notes-on-beginner-event-2/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/07/dons-event-2-notes/' rel='bookmark' title='Don&#8217;s Event 2 Notes'>Don&#8217;s Event 2 Notes</a></li>
+<li><a href='http://powershell.org/wp/2013/04/28/cim-cmdlets-vs-wmi-cmdlets-speed-of-execution/' rel='bookmark' title='CIM cmdlets vs WMI cmdletsâspeed of execution'>CIM cmdlets vs WMI cmdletsâspeed of execution</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Â First of all, congratulations! It looks to me like a lot of learning is going on; the 2nd event entries look really good to me. I especially liked the way a number of you built up a one-liner by starting with a<em>Â Get-WmiObject Win32_ComputerSystem -ComputerName (Get-Content file.txt)</em> and piping it into <em>Select-Object</em> to generate the data. However, there were a couple of areas within the Select block that make me think that some more discussion of what $_ means in a pipeline would be helpful.</p>
+<p>Within the Select block, it is necessary to make a call to <em>Get-WmiObject Win32_OperatingSystem </em>to get come additional information. It looks like everybody got the format correct: <em>@{Name=&#8217;OS&#8217;;Expression={Get-WmiObject}} </em>where folks got into trouble was in specifying the ComputerNameÂ property. Some didn&#8217;t even include it, meaning that the OS value would be taken from the local computer and not the remote one. But, more often than not, the code contained a plain $_ : <em>@{Name=&#8217;OS&#8217;;Expression={(Get-WmiObject Win32_OperatingSystem -ComputerName $_).Caption}}</em>. So, what&#8217;s wrong with this? The problem is the value of $_ at this point in the pipeline.</p>
+<p>Let&#8217;s try an experiment to show what I mean. Try this:</p><pre class="crayon-plain-tag">Get-WmiObjectÂ Win32_ComputerSystem | Select-Object @{Name='OS';Expression={Get-WmiObject Win32_OperatingSystem -ComputerName $_}}</pre><p>&nbsp;</p>
+<p>What does it return? Only the label &#8220;OS&#8221; with no data and no error message. Why? To find out, lets change the code a little and see.</p><pre class="crayon-plain-tag">Get-WmiObjectÂ Win32_ComputerSystem | foreach {Get-WmiObject Win32_OperatingSystem -ComputerName $_}</pre><p>This time, we do get an error message:</p><pre class="crayon-plain-tag">Get-WmiObjectÂ : Invalid parameter At line:1 char:47 + Get-WmiObjectÂ Win32_ComputerSystem | foreach {Get-WmiObject Win32_OperatingSyste ... + ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ + CategoryInfoÂ : InvalidOperation: (:) [Get-WmiObject], ManagementExceptionÂ + FullyQualifiedErrorIdÂ : GetWMIManagementException,Microsoft.PowerShell.Commands.GetWmiObjectCommand</pre><p>Â &#8221;Invalid Parameter&#8221; means that $_ isn&#8217;t a computer name. What is it? It&#8217;s actually the entire Win32_ComputerSystem object. What you need to do is to select one of the object properties that contains the system&#8217;s name ($_.__SERVER, $_.Name, or $_.PSComputerName).</p>
+<p>Hopefully, this wasn&#8217;t too long or complex a description. The point is be careful in your pipelines that you know exactly what $_ means at each step.</p>
+<blockquote><p>&nbsp;</p>
+<p>&nbsp;</p></blockquote>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/07/dons-event-2-notes/' rel='bookmark' title='Don&#8217;s Event 2 Notes'>Don&#8217;s Event 2 Notes</a></li>
+<li><a href='http://powershell.org/wp/2013/04/28/cim-cmdlets-vs-wmi-cmdlets-speed-of-execution/' rel='bookmark' title='CIM cmdlets vs WMI cmdletsâspeed of execution'>CIM cmdlets vs WMI cmdletsâspeed of execution</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/xGHKD0cJY5o" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/08/notes-on-beginner-event-2/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/08/notes-on-beginner-event-2/</feedburner:origLink></item>
+		<item>
+		<title>Tips on Implementing Pipeline Support</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/Q3jpeuUfuaE/</link>
+		<comments>http://powershell.org/wp/2013/05/07/tips-on-implementing-pipeline-support/#comments</comments>
+		<pubDate>Wed, 08 May 2013 03:16:27 +0000</pubDate>
+		<dc:creator>Boe Prox</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[pipeline]]></category>
+		<category><![CDATA[Pipeline Support]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4312</guid>
+		<description><![CDATA[While reviewing Event 1 (and now Event 2) I&#8217;ve seen some scripts that don&#8217;t quite have the correct pipeline support and others that do a great job with it. Whether it is an unneeded Begin or End statement, or throwing everything into a Process block and not quite getting the expected output or even having<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/07/tips-on-implementing-pipeline-support/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/01/do-you-really-support-should-process/' rel='bookmark' title='Do you really Support Should Process&#8230;?'>Do you really Support Should Process&#8230;?</a></li>
+<li><a href='http://powershell.org/wp/2013/05/03/beginner-event-tips/' rel='bookmark' title='Beginner Event Tips'>Beginner Event Tips</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/few-notes-written-after-event-1/' rel='bookmark' title='Few notes written after event 1.'>Few notes written after event 1.</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>While reviewing Event 1 (and now Event 2) I&#8217;ve seen some scripts that don&#8217;t quite have the correct pipeline support and others that do a great job with it. Whether it is an unneeded Begin or End statement, or throwing everything into a Process block and not quite getting the expected output or even having a Process block when ValueFromPipeline/ValueFromPipelineByPropertyName is not even enabled. Before I start working through my notes for Event 2, I wanted to get this post out of the way. I hope that what I put together here will help those out who are working to implement pipeline support in their code as well as providing a method of troubleshooting the parameter binding using Trace-Command. The blog post is available <a href="http://learn-powershell.net/2013/05/07/tips-on-implementing-pipeline-support/">hereÂ to view</a>.</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/01/do-you-really-support-should-process/' rel='bookmark' title='Do you really Support Should Process&#8230;?'>Do you really Support Should Process&#8230;?</a></li>
+<li><a href='http://powershell.org/wp/2013/05/03/beginner-event-tips/' rel='bookmark' title='Beginner Event Tips'>Beginner Event Tips</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/few-notes-written-after-event-1/' rel='bookmark' title='Few notes written after event 1.'>Few notes written after event 1.</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/Q3jpeuUfuaE" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/07/tips-on-implementing-pipeline-support/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/07/tips-on-implementing-pipeline-support/</feedburner:origLink></item>
+		<item>
+		<title>PhillyPoSH 05/02/2013 meeting summary and presentation materials</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/pJE2YL2o-P4/</link>
+		<comments>http://powershell.org/wp/2013/05/07/phillyposh-05022013-meeting-summary-and-presentation-materials/#comments</comments>
+		<pubDate>Wed, 08 May 2013 02:56:14 +0000</pubDate>
+		<dc:creator>John.A.Mello</dc:creator>
+				<category><![CDATA[Philadelphia]]></category>
+		<category><![CDATA[Jeff Wouters]]></category>
+		<category><![CDATA[John Mello]]></category>
+		<category><![CDATA[learning curve]]></category>
+		<category><![CDATA[presentation]]></category>
+		<category><![CDATA[presentation materials]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4298</guid>
+		<description><![CDATA[Jeff Wouters gave an excellent presentation via Lync on: Avoiding the pipeline Improving your learning curve Improving your teaching curve John Mello gave a presentation and demo of script that uses Exchange multi-valued custom attributes to store information on when to remove users from a security group after a specified amount of days. Standalone meeting<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/07/phillyposh-05022013-meeting-summary-and-presentation-materials/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/01/07/phillyposh-01032013-meeting-summary-and-presentation-materials/' rel='bookmark' title='PhillyPoSH 01/03/2013 meeting summary and presentation materials'>PhillyPoSH 01/03/2013 meeting summary and presentation materials</a></li>
+<li><a href='http://powershell.org/wp/2013/02/16/phillyposh-02072013-meeting-summary-and-presentation-materials/' rel='bookmark' title='PhillyPoSH 02/07/2013 meeting summary and presentation materials'>PhillyPoSH 02/07/2013 meeting summary and presentation materials</a></li>
+<li><a href='http://powershell.org/wp/2012/12/10/phillyposh-12062012-meeting-summary-and-presentation-materials/' rel='bookmark' title='PhillyPoSH 12/06/2012 meeting summary and presentation materials'>PhillyPoSH 12/06/2012 meeting summary and presentation materials</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<ol start="1">
+<li><a href="http://jeffwouters.nl/">Jeff Wouters</a> gave an excellent <a href="http://powershell.org/wp/wp-content/uploads/2013/05/PhillyPosh_2013-05-02_Presentation_JeffWouters.zip?bb7cbb">presentation </a>via Lync on:
+<ol start="1">
+<li>Avoiding the pipeline</li>
+<li>Improving your learning curve</li>
+<li>Improving your teaching curve</li>
+</ol>
+</li>
+<li><a href="http://technet.microsoft.com/en-us/library/hh529924%28v=exchg.141%29.aspx#BKMK_MultiValueCustom">John Mello</a> gave a <a href="http://powershell.org/wp/wp-content/uploads/2013/05/PhillyPosh_2013-05-02_ScriptClub.zip?bb7cbb">presentation and demo of script </a>that uses <a href="http://technet.microsoft.com/en-us/library/hh529924%28v=exchg.141%29.aspx#BKMK_MultiValueCustom">Exchange multi-valued custom attributes</a> to store information on when to remove users from a security group after a specified amount of days.</li>
+<li>Standalone meeting material links
+<ol>
+<li><a href="http://powershell.org/wp/wp-content/uploads/2013/05/PhillyPosh_2013-05-02_ScriptClub.zip?bb7cbb">PhillyPosh_2013-05-02_ScriptClub</a></li>
+<li><a href="http://powershell.org/wp/wp-content/uploads/2013/05/PhillyPosh_2013-05-02_Presentation_JeffWouters.zip?bb7cbb">PhillyPosh_2013-05-02_Presentation_JeffWouters</a></li>
+</ol>
+</li>
+</ol>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/01/07/phillyposh-01032013-meeting-summary-and-presentation-materials/' rel='bookmark' title='PhillyPoSH 01/03/2013 meeting summary and presentation materials'>PhillyPoSH 01/03/2013 meeting summary and presentation materials</a></li>
+<li><a href='http://powershell.org/wp/2013/02/16/phillyposh-02072013-meeting-summary-and-presentation-materials/' rel='bookmark' title='PhillyPoSH 02/07/2013 meeting summary and presentation materials'>PhillyPoSH 02/07/2013 meeting summary and presentation materials</a></li>
+<li><a href='http://powershell.org/wp/2012/12/10/phillyposh-12062012-meeting-summary-and-presentation-materials/' rel='bookmark' title='PhillyPoSH 12/06/2012 meeting summary and presentation materials'>PhillyPoSH 12/06/2012 meeting summary and presentation materials</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/pJE2YL2o-P4" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/07/phillyposh-05022013-meeting-summary-and-presentation-materials/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/07/phillyposh-05022013-meeting-summary-and-presentation-materials/</feedburner:origLink></item>
+		<item>
+		<title>Donâs Event 2 Notes</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/9DzgQ0XxC2A/</link>
+		<comments>http://powershell.org/wp/2013/05/07/dons-event-2-notes/#comments</comments>
+		<pubDate>Tue, 07 May 2013 23:02:02 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[Computername]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4274</guid>
+		<description><![CDATA[I thought I&#8217;d mentioned this last time (tap tap, this thing on?), but maybe not: don&#8217;t format the output of your functions. The minute a function includes Format-*, you&#8217;ve trapped me into on-screen display, a text file or piece of paper modeled after the on-screen display, or not a lot of other choices. If I<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/07/dons-event-2-notes/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/02/18/filtering/' rel='bookmark' title='Filtering'>Filtering</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/' rel='bookmark' title='Judge Notes: Event 1 &#8211; and Thank you for participating!'>Judge Notes: Event 1 &#8211; and Thank you for participating!</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>I thought I&#8217;d mentioned this last time (tap tap, this thing on?), but maybe not: don&#8217;t format the output of your functions. The minute a function includes Format-*, you&#8217;ve trapped me into on-screen display, a text file or piece of paper modeled after the on-screen display, or not a lot of other choices. If I want formatting, I&#8217;ll pipe your function to my own Format-* command of choice. But if I want CSV, or HTML, or XML, I&#8217;d like that option. Thanks.</p>
+<p>This is not a favorite technique of mine:</p><pre class="crayon-plain-tag">$ServerInfo = "" | Select-Object Name, SerialNumber, OS, Model, CPU, CPUCount, Memory, GBMemory
+$ServerInfo.Name = $Server.ToUpper()
+$ServerInfo.SerialNumber =(Get-WmiObject -Class Win32_BIOS -ComputerName $Server -Credential $Credential).SerialNumber</pre><p>That said, it&#8217;s not &#8220;wrong&#8221; so I only knock of like 1/10th of a point. For me, this technique is a bit of a hack, and it doesn&#8217;t parse well visually. You&#8217;re relying on Select-Object accepting non-existent property names and turning them into blank properties for you. It&#8217;s&#8230; well, it&#8217;s weird, and frankly this behavior &#8211; while convenient in this instance &#8211; causes more harm than good. Ever typo a property name on Select, and get a blank column as a result? Yeah, that. I wish Select didn&#8217;t work this way, and so as a result I&#8217;m not a fan of this technique.</p>
+<p>&#8212;</p><pre class="crayon-plain-tag">if ($ServerInfo.CPU -is [array]) {
+  $ServerInfo.CPU = $ServerInfo.CPU[0]
+}</pre><p>Nice thinking, muchacho. You don&#8217;t know if you&#8217;ve got more than one object, so you check. I&#8217;ll note, however, that this could have been done more concisely when you got the property:</p><pre class="crayon-plain-tag">$ServerInfo.CPU = (Get-WmiObject -Class Win32_Processor -ComputerName $Server -Credential $Credential).Name</pre><p>Add a <strong>Select -First 1</strong> to the end of that and you&#8217;d be guaranteed of only having one.</p>
+<p>&#8212;</p><pre class="crayon-plain-tag">$ServerInfo.SerialNumber =(Get-WmiObject -Class Win32_BIOS -ComputerName $Server -Credential $Credential).SerialNumber
+$ServerInfo.OS = (Get-WmiObject -Class Win32_OperatingSystem -ComputerName $Server -Credential $Credential).Caption
+$ServerInfo.Model = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $Server -Credential $Credential).Model
+$ServerInfo.CPU = (Get-WmiObject -Class Win32_Processor -ComputerName $Server -Credential $Credential).Name
+$ServerInfo.CPUCount = (Get-WmiObject -Class Win32_Processor -ComputerName $Server -Credential $Credential).count
+$ServerInfo.Memory = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName $Server -Credential $Credential).TotalPhysicalMemory</pre><p>Saw a lotta this. I&#8217;m kinda picking examples from one script, but this happened a lot. You&#8217;re executing 6 queries. You needed 3. Double the effort, double the time. Bad call. Query it once, save it in a variable, extract what you need from that.</p>
+<p>&#8212;</p><pre class="crayon-plain-tag">param(
+ [Parameter(
+  Position=0,
+  Mandatory=$true,
+  ValueFromPipeline=$true,
+  ValueFromPipelineByPropertyName=$true
+ )]
+ [string[]]$computers
+)</pre><p>This hurts a little. Look at every native PowerShell command that accepts computer names, and it does so on a -ComputerName parameter. So why pick -computers for your function and be all nonstandard? Stay consistent.</p>
+<p>&#8212;</p><pre class="crayon-plain-tag">$s = New-Object System.Object
+
+$os = Get-WmiObject -Class Win32_OperatingSystem -ComputerName $computer
+$s | Add-Member -Type NoteProperty -Name "Server Name" -Value $os.CSName
+$s | Add-Member -Type NoteProperty -Name "OS Version" -Value $os.Caption
+
+$cs = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $computer
+
+$mem = [string]([Math]::Round(($cs.TotalPhysicalMemory / 1MB),2)) + " MB"
+$s | Add-Member -Type NoteProperty -Name "PhysicalMem" -Value $mem
+$s | Add-Member -Type NoteProperty -Name "# CPUs" -Value $cs.NumberOfProcessors
+
+$cpu = Get-WmiObject -Class Win32_Processor -ComputerName $computer</pre><p>Ahh, that&#8217;s better. One query per class, then extract what you want from a variable. You can be a bit more concise using a hashtable, but I&#8217;m jiggy with this technique.</p>
+<p>I said &#8220;jiggy.&#8221;</p>
+<p>&#8212;</p>
+<p>I want to point out that Dr. Scripto was optional about the &#8220;number of cores in each socket&#8221; thing. He said, &#8220;if you can do it.&#8221; You can&#8217;t. Not readily; XP doesn&#8217;t expose that information (having existed before the advent of cores, um, time to upgrade okaythanksbuhbye) so you couldn&#8217;t get it consistently for all of the operating systems you were asked for. Sometimes, the test is about seeing when you know to quit, not seeing if you can piledrive your way into a half-answer.</p>
+<p>&#8212;</p>
+<p>You know you totally get downvoted if you don&#8217;t include comment-based help with functions, right? Advanced track only. Just saying.&#8212;</p><pre class="crayon-plain-tag">"Server name: " + $Info.Caption
+"OS: " + $Info2.Caption + $Info2.CSDVersion
+"Processor sockets: " + $Info.NumberOfProcessors
+"Processor cores: " + $Info.NumberOfLogicalProcessors
+"Physical memory: " + [Math]::Round(($Info.TotalPhysicalMemory/1GB),2) + "GB"</pre><p>Yeah. Outputting formatted text instead of objects. I know. I cried for the dead puppies, and then drank. I drank <em>vodka. </em>I hate vodka, but the puppies. There is seriously a better way to output &#8211; outputting text prevents PowerShell from doing ANYTHING USEFUL with your output. <a href="http://scriptinggames.org/entrylist.php?entryid=519">See how this guy did it</a>? Do that. I&#8217;m not a huge ordered hashtable fan, but that&#8217;s just me. I don&#8217;t hate them as much as vodka. Or text output.</p>
+<p>&#8212;</p>
+<p><a href="http://scriptinggames.org/entrylist.php?entryid=552">This one is trending well</a>. I get it. It&#8217;s beautiful. I think I wrote a book about this. My ONLY SINGLE NITPICK is that it&#8217;s maybe a wee bit overwrought. I think it&#8217;s because of the whole try CIM, then try DCOM, thing. He probably had to do it this way. I wish the new CIM cmdlets didn&#8217;t require an explicit session to do DCOM. I think that&#8217;s a big fail, because it forces you to write functions like this. Meh. I should write a proxy function for this. Anyway.</p>
+<p>&#8212;</p><pre class="crayon-plain-tag">Write-Verbose -Message 'Creating runspace pool'
+$rp = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(1, $ThrottleLimit, $iss, $Host)
+$rp.Open()</pre><p>I have no idea what to do with this. <a href="http://scriptinggames.org/entrylist.php?entryid=482">Here&#8217;s the whole thing</a>. This person is likely a LOT smarter than me. Certainly WAY more patient. I&#8217;m not sure Dr. Scripto anticipated a 317-line solution. I think he&#8217;s rolled his own multithreading here. Just&#8230; wow. It&#8217;s definitely overkill, by an order of magnitude, but props, man.</p>
+<p>Someone can explain it to me sometime after the vodka wears off, yeah?</p>
+<p>&#8212;</p>
+<p>People are <a href="http://scriptinggames.org/entrylist.php?entryid=513">hating on this one</a>. They&#8217;re wrong. It&#8217;s a good entry. Let me tell you something, stop giving a score of &#8220;2&#8243; because someone did something <em>extra</em> like add logging. If it works, they went above and beyond. Do you not reward people for going above and beyond in your organization? No? Well, you should.</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/02/18/filtering/' rel='bookmark' title='Filtering'>Filtering</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/' rel='bookmark' title='Judge Notes: Event 1 &#8211; and Thank you for participating!'>Judge Notes: Event 1 &#8211; and Thank you for participating!</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/9DzgQ0XxC2A" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/07/dons-event-2-notes/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/07/dons-event-2-notes/</feedburner:origLink></item>
+		<item>
+		<title>Are you getting unfair comments in the Games?</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/i7W_gILcQnI/</link>
+		<comments>http://powershell.org/wp/2013/05/07/are-you-geting-unfair-comments-in-the-games/#comments</comments>
+		<pubDate>Tue, 07 May 2013 17:33:59 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Scripting Games]]></category>
+		<category><![CDATA[educational opportunity]]></category>
+		<category><![CDATA[opportunity]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4195</guid>
+		<description><![CDATA[I continue to be amused by folks&#8217; reactions to the Games this year. There&#8217;s been some buzz on Twitter this morning from folks who feel some of their comments &#8211; and the corresponding low scores &#8211; aren&#8217;t warranted. In a couple of cases I&#8217;ve looked at, they&#8217;re right &#8211; their entries are being downrated for<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/07/are-you-geting-unfair-comments-in-the-games/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/03/scripting-games-what-should-we-do-with-comments/' rel='bookmark' title='Scripting Games: What Should We Do With Comments?'>Scripting Games: What Should We Do With Comments?</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/scripting-games-voting-continues/' rel='bookmark' title='Scripting Games Voting Continues!'>Scripting Games Voting Continues!</a></li>
+<li><a href='http://powershell.org/wp/2013/04/29/state-of-the-games/' rel='bookmark' title='State of the Games'>State of the Games</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>I continue to be amused by folks&#8217; reactions to the Games this year.</p>
+<p>There&#8217;s been some buzz on Twitter this morning from folks who feel some of their comments &#8211; and the corresponding low scores &#8211; aren&#8217;t warranted. In a couple of cases I&#8217;ve looked at, they&#8217;re right &#8211; their entries are being downrated for reasons that are actually not best practices; by following the best practices, these entries are getting lower scores.</p>
+<p>This reinforces a point I keep trying to make: The Games <em><strong>aren&#8217;t about YOU. They&#8217;re about US.</strong></em><strong> </strong></p>
+<p>Let me put it another way: if you&#8217;re getting comments from folks whose opinions are founded in a misunderstanding or misconception, that&#8217;s an opportunity to educate. Not to attack that commenter &#8211; which is why commenter names aren&#8217;t shown &#8211; but to educate the community in general. The community took the time to give you comments, and although some of them might be misguided, <em>you</em> can take the time to offer a productive counterpoint and perhaps lay some misunderstandings to rest.</p>
+<p>That&#8217;s the point of the Games: to learn. Maybe not for <strong>you</strong> to learn, but maybe for you to help <strong>someone else</strong> learn. Or to put it another way, I haven&#8217;t received Microsoft&#8217;s MVP Award for ten years straight because I got a good &#8220;score&#8221; on something. I got it because I look for teachable moments and try to offer explanations. Being able to teach something shows that you <em>really</em> know it.</p>
+<p>Think of your Games entries as a honeypot. If you can attract some folks who don&#8217;t quite get what you&#8217;re doing, then through the comments you&#8217;ll spot broad areas of educational opportunity, or what I call &#8220;teachable moments.&#8221; Seize on those and help bring the community as a whole to a higher level.</p>
+<p>Does that mean the educational opportunity has to come at the cost of you getting a lower score? Yup. Will that score in any other way impact your life? Nope. It&#8217;s not going on your permanent record. Human Resources will never know. It won&#8217;t affect your salary, or your ability to choose which movie you will see this weekend (Iron Man 3, BTW). Thicken up that skin a little &#8211; every vote isn&#8217;t a personal attack on you. Every &#8220;unqualified&#8221; comment is not a stain upon your honor.</p>
+<p>I really wish I could use some of the cooler interjections from <em>Spartacus</em> here, but none of that stuff is suitable for a professional environment <img src="http://powershell.powershellorginc.netdna-cdn.com/wp/wp-includes/images/smilies/icon_sad.gif?bb7cbb" alt=':(' class='wp-smiley' /> .</p>
+<p>In short: Cool yer jets. Take the opportunity to educate. Not on Twitter. Man, you guys with the tweets. You don&#8217;t have a blog, drop me an e-mail and I&#8217;ll give you authoring permissions right here on PowerShell.org. Help us, as a community, educate each other.</p>
+<p>And hey, remember not ALL of your comments are non-constructive. Learn from the ones you can, tune out the rest. Like watching CNN. Ever notice how, on a slow news day, the talk about Atlanta&#8217;s traffic? Exactly.</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/03/scripting-games-what-should-we-do-with-comments/' rel='bookmark' title='Scripting Games: What Should We Do With Comments?'>Scripting Games: What Should We Do With Comments?</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/scripting-games-voting-continues/' rel='bookmark' title='Scripting Games Voting Continues!'>Scripting Games Voting Continues!</a></li>
+<li><a href='http://powershell.org/wp/2013/04/29/state-of-the-games/' rel='bookmark' title='State of the Games'>State of the Games</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/i7W_gILcQnI" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/07/are-you-geting-unfair-comments-in-the-games/feed/</wfw:commentRss>
+		<slash:comments>9</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/07/are-you-geting-unfair-comments-in-the-games/</feedburner:origLink></item>
+		<item>
+		<title>Scripting Games Event 1 Winners</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/OkpjqG5koSo/</link>
+		<comments>http://powershell.org/wp/2013/05/07/scripting-games-event-1-winners/#comments</comments>
+		<pubDate>Tue, 07 May 2013 16:11:57 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Scripting Games]]></category>
+		<category><![CDATA[Beginner First Place]]></category>
+		<category><![CDATA[Free eBook]]></category>
+		<category><![CDATA[Interface Technical Training]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4093</guid>
+		<description><![CDATA[We&#8217;re pleased to announce the winners for Event 1 of The Scripting Games 2013! Winners: You can log into The Scripting Games Web site and go to your Profile page to see your prize. You will be given a prize redemption code and either a URL where you can redeem it, or an e-mail address<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/07/scripting-games-event-1-winners/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/17/scripting-games-2013-prize-list/' rel='bookmark' title='[UPDATED] Scripting Games 2013 Prize List'>[UPDATED] Scripting Games 2013 Prize List</a></li>
+<li><a href='http://powershell.org/wp/2013/04/18/scripting-games-competitor-guide-instructions-update/' rel='bookmark' title='Scripting Games Competitor Guide / Instructions Update'>Scripting Games Competitor Guide / Instructions Update</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/' rel='bookmark' title='Scripting Games 2013: Event 1 âFavorite&#8217; and âNot So Favorite&#8217; Submissions'>Scripting Games 2013: Event 1 âFavorite&#8217; and âNot So Favorite&#8217; Submissions</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>We&#8217;re pleased to announce the winners for Event 1 of The Scripting Games 2013!</p>
+<p>Winners: You can log into <a href="http://scriptinggames.org/">The Scripting Games Web site</a> and go to your Profile page to see your prize. You will be given a prize redemption code and either a URL where you can redeem it, or an e-mail address of the prize provider (they will need the redemption code). All prizes must be claimed by the end of July 2013. I will list winners by username; if you used your e-mail address as your username, then a portion of that will be truncated for your privacy. Anyone can log in and check their Profile page to see if they&#8217;ve won a prize.</p>
+<ul>
+<li>Event 1 Beginner First Place (free ebook from Manning): taygibb</li>
+<li>Event 1 Beginner Second Place (free video training from Interface Technical Training): alvaroBT</li>
+<li>Event 1 Beginner Third Place (free year of Phoneominal service from Start-Automating): Novice</li>
+</ul>
+<ul>
+<li>Event 1 Advanced First Place (free ebook from Manning): mikefrobbins</li>
+<li>Event 1 Advanced Second Place (free video training from Interface Technical Training): Toni</li>
+<li>Event 1 Advanced Third Place (free year of Phoneominal service from Start-Automating): lido</li>
+</ul>
+<ul>
+<li>Event 1 Beginner Top CrowdScore (free ebook from Manning): taygibb</li>
+<li>Event 1 Advanced Top CrowdScore (free ebook from Manning): mikefrobbins</li>
+</ul>
+<ul>
+<li>CrowdScore Voter (free month of video training from Interface Technical Training): kirkaldrin</li>
+<li>CrowdScore Voter (free month of video training from Interface Technical Training): KmTatar</li>
+<li>CrowdScore Voter (free ebook from Manning): Klaus_Schulte</li>
+<li>CrowdScore Voter (free ebook from Manning): Daniel</li>
+<li>CrowdScore Voter ($50 Gift Certificate from SAPIEN Technologies): theotherkidd@__.com</li>
+</ul>
+<p>Congratulations to all of our winners! Note that our top three prizes in each category were awarded by our Mighty Panel of Celebrity Judges. Each judge nominated a first, second, and third place winner from the entries that our expert commentators identified as &#8220;best.&#8221; Those nominations were compiled, and in the event of a tie the earliest entry was deemed winner (that didn&#8217;t happen, actually). I&#8217;m mildly surprised that our community voting identified the same top scripters in each track &#8211; the 1st, 2nd, and 3rd-place award process didn&#8217;t factor in the CrowdScore at all.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/17/scripting-games-2013-prize-list/' rel='bookmark' title='[UPDATED] Scripting Games 2013 Prize List'>[UPDATED] Scripting Games 2013 Prize List</a></li>
+<li><a href='http://powershell.org/wp/2013/04/18/scripting-games-competitor-guide-instructions-update/' rel='bookmark' title='Scripting Games Competitor Guide / Instructions Update'>Scripting Games Competitor Guide / Instructions Update</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/' rel='bookmark' title='Scripting Games 2013: Event 1 âFavorite&#8217; and âNot So Favorite&#8217; Submissions'>Scripting Games 2013: Event 1 âFavorite&#8217; and âNot So Favorite&#8217; Submissions</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/OkpjqG5koSo" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/07/scripting-games-event-1-winners/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/07/scripting-games-event-1-winners/</feedburner:origLink></item>
+		<item>
+		<title>PowerShell Summit Videos</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/1XYdifVBRK0/</link>
+		<comments>http://powershell.org/wp/2013/05/07/powershell-summit-videos/#comments</comments>
+		<pubDate>Tue, 07 May 2013 15:52:59 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[PowerShell Summit]]></category>
+		<category><![CDATA[Videos]]></category>
+		<category><![CDATA[Aleksandar Nikolic]]></category>
+		<category><![CDATA[Richard Siddaway]]></category>
+		<category><![CDATA[Summit attendees]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4172</guid>
+		<description><![CDATA[Aaron Hoover, one of our Summit attendees, was kind enough to record via webcam the sessions he attended &#8211; and he&#8217;s posted about 13 hours of video on YouTube for your viewing pleasure. What I&#8217;d like to know from you, if you don&#8217;t mind dropping a comment below, is what you think of these. If<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/07/powershell-summit-videos/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/22/summit-downloads/' rel='bookmark' title='Summit Downloads'>Summit Downloads</a></li>
+<li><a href='http://powershell.org/wp/2012/11/02/powershell-summit-community-sessions-list/' rel='bookmark' title='PowerShell Summit Community Sessions List [Updated]'>PowerShell Summit Community Sessions List [Updated]</a></li>
+<li><a href='http://powershell.org/wp/2012/03/25/schedule-for-the-upcoming-powershell-deep-dive-and-a-few-videos-from-frankfurt/' rel='bookmark' title='Schedule for the upcoming PowerShell Deep Dive and a few videos from Frankfurt'>Schedule for the upcoming PowerShell Deep Dive and a few videos from Frankfurt</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Aaron Hoover, one of our Summit attendees, was kind enough to record via webcam the sessions he attended &#8211; and he&#8217;s posted about 13 hours of video on YouTube for your viewing pleasure.</p>
+<p>What I&#8217;d like to know from you, if you don&#8217;t mind dropping a comment below, is what you think of these. If we offered this KIND of recording in the future, would it be helpful? This is something we can do easily and is affordable from a technical perspective; there&#8217;s obviously a production quality compromise. We can do more&#8230; but it costs more, and someone&#8217;s going to have to pay for it. So&#8230; where do you sit on this kind of recording?</p>
+<ul>
+<li>http://youtu.be/0NeEU3FHp8I Device Management With PowerShell &#8211; Ricardo Mendes &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/XsnE_OQGvdo Creating a Complex and Reusable HTML Reporting Structure &#8211; Alan Renouf &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/iV6cYsQDL0Y How Secure Can You Be &#8211; Jeff Hicks PowerShell Summit 2013</li>
+<li>http://youtu.be/qSE06GkQWV4 Standards Based Hardware Management &#8211; Steve Lee &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/7C53pawPw3Y Workshop &#8211; Automating for DevOps &#8211; Kenneth Hansen and Hemant Mahawar &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/KFA-zSojxqw CIM Sessions &#8211; Richard Siddaway &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/EloMKpvfES8 PowerShell Web Access &#8211; Richard Siddaway &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/3deY6e6Npzo Sapien PowerShell Products &#8211; David Corrales &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/xZtapxf1ytI What I learned Judging 5000 Scripts &#8211; Ed Wilson &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/Ahvs1rGPk1s PowerShell Events &#8211; Richard Siddaway &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/U_niW85TtJE Write Modules, Not Scripts &#8211; Ed Wilson &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/Y8IbadEHoPg PoshMon &#8211; PowerShell Does Performance Counters &#8211; Ed Wilson &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/1XuB71tLNvg Configuring Your PowerShell Workflow Environment &#8211; Aleksandar Nikolic &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/msHGx-mxWJA Practical PowerShell Integration from Bare Metal to the Cloud &#8211; Alan Renouf &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/eAZ-agh182g Source Control for IT Pros &#8211; Andy Schneider &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/pL_Ry5LzX3w Creating HTML Reports with Style &#8211; Jeff Hicks &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/-ERyfmOmyoI Remoting Configuration Deep Dive &#8211; Don Jones &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/jMVBN5V0G4Y Advanced Network Scripting with PowerShell &#8211; Lee Holmes &#8211; PowerShell Summit 2013</li>
+<li>http://youtu.be/GXkLtEOM-DMÂ Build Your Demo Environment with Windows PowerShell &#8211; Aleksandar Nikolic &#8211; PowerShell Summit 2013</li>
+</ul>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/22/summit-downloads/' rel='bookmark' title='Summit Downloads'>Summit Downloads</a></li>
+<li><a href='http://powershell.org/wp/2012/11/02/powershell-summit-community-sessions-list/' rel='bookmark' title='PowerShell Summit Community Sessions List [Updated]'>PowerShell Summit Community Sessions List [Updated]</a></li>
+<li><a href='http://powershell.org/wp/2012/03/25/schedule-for-the-upcoming-powershell-deep-dive-and-a-few-videos-from-frankfurt/' rel='bookmark' title='Schedule for the upcoming PowerShell Deep Dive and a few videos from Frankfurt'>Schedule for the upcoming PowerShell Deep Dive and a few videos from Frankfurt</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/1XYdifVBRK0" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/07/powershell-summit-videos/feed/</wfw:commentRss>
+		<slash:comments>5</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/07/powershell-summit-videos/</feedburner:origLink></item>
+		<item>
+		<title>Event 2: My wayâŚ</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/5YvFBFQ8a5E/</link>
+		<comments>http://powershell.org/wp/2013/05/06/event-2-my-way/#comments</comments>
+		<pubDate>Tue, 07 May 2013 04:26:03 +0000</pubDate>
+		<dc:creator>Bartek Bielawski</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[negative feedback]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4130</guid>
+		<description><![CDATA[I haven&#8217;t received any negative feedback on idea to blog about &#8220;how would I do it&#8221; (what you think about my approach is different topic) so I decided to continue. Again: because I don&#8217;t want to be influenced by your ideas and make my task as close to your work as possible I post it<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/06/event-2-my-way/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/29/event-1-my-way/' rel='bookmark' title='Event 1: My way&#8230;'>Event 1: My way&#8230;</a></li>
+<li><a href='http://powershell.org/wp/2013/04/25/scripting-wife-comments-on-beginner-event-1/' rel='bookmark' title='Scripting Wife Comments on Beginner Event 1'>Scripting Wife Comments on Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/' rel='bookmark' title='Event 2 Opens / Event 1 Winding Down'>Event 2 Opens / Event 1 Winding Down</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>I haven&#8217;t received any negative feedback on idea to blog about &#8220;<em>how would I do it</em>&#8221; (what you think about my approach is different topic) so I decided to continue. Again: because I don&#8217;t want to be influenced by your ideas and make my task as close to your work as possible I post it early, before I see any of cool techniques I haven&#8217;t thought of and you did, so that I can regret it later. <a title="Event 2 - my way - Bartek Bielawski" href="http://becomelotr.wordpress.com/2013/05/07/event-2-my-way/" target="_blank">You can find whole article on my blog</a>. Enjoy, and please &#8211; if you see something silly, let me know. I really <strong>do</strong> appreciate negative feedback!</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/29/event-1-my-way/' rel='bookmark' title='Event 1: My way&#8230;'>Event 1: My way&#8230;</a></li>
+<li><a href='http://powershell.org/wp/2013/04/25/scripting-wife-comments-on-beginner-event-1/' rel='bookmark' title='Scripting Wife Comments on Beginner Event 1'>Scripting Wife Comments on Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/' rel='bookmark' title='Event 2 Opens / Event 1 Winding Down'>Event 2 Opens / Event 1 Winding Down</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/5YvFBFQ8a5E" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/06/event-2-my-way/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/06/event-2-my-way/</feedburner:origLink></item>
+		<item>
+		<title>Event 2 is final!</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/U7uiQ1AGIBw/</link>
+		<comments>http://powershell.org/wp/2013/05/06/event-2-is-final/#comments</comments>
+		<pubDate>Tue, 07 May 2013 00:23:43 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Scripting Games]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4094</guid>
+		<description><![CDATA[Event 2 has closed for submissions and will open for voting later this evening. Good luck! And voters: remember that quality comments will vastly increase your chances of winning a prize!<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/scripting-games-voting-continues/' rel='bookmark' title='Scripting Games Voting Continues!'>Scripting Games Voting Continues!</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/' rel='bookmark' title='Event 2 Opens / Event 1 Winding Down'>Event 2 Opens / Event 1 Winding Down</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/' rel='bookmark' title='Scripting Games 2013: Thoughts After Event 1'>Scripting Games 2013: Thoughts After Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Event 2 has closed for submissions and will open for voting later this evening. Good luck! And voters: remember that quality comments will vastly increase your chances of winning a prize!</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/scripting-games-voting-continues/' rel='bookmark' title='Scripting Games Voting Continues!'>Scripting Games Voting Continues!</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/' rel='bookmark' title='Event 2 Opens / Event 1 Winding Down'>Event 2 Opens / Event 1 Winding Down</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/' rel='bookmark' title='Scripting Games 2013: Thoughts After Event 1'>Scripting Games 2013: Thoughts After Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/U7uiQ1AGIBw" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/06/event-2-is-final/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/06/event-2-is-final/</feedburner:origLink></item>
+		<item>
+		<title>A Helpful Message about HelpMessage</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/3cl6H44Pimo/</link>
+		<comments>http://powershell.org/wp/2013/05/06/a-helpful-message-about-helpmessage/#comments</comments>
+		<pubDate>Mon, 06 May 2013 23:39:21 +0000</pubDate>
+		<dc:creator>June Blender</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=4088</guid>
+		<description><![CDATA[The Scripting Games 2013 winners have not yet been announced, but for the 3rd year running, I&#8217;m in the lead for the &#8220;Learned Most from the Scripting Games&#8221; award. I&#8217;m making space for the prize on my bookshelf. Seriously, I play with PowerShell all the time and read lots of blogs, but nothing compares to<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/06/a-helpful-message-about-helpmessage/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/29/powershell-popup/' rel='bookmark' title='PowerShell PopUp'>PowerShell PopUp</a></li>
+<li><a href='http://powershell.org/wp/2011/10/19/windows-powershell-version-3-simplified-syntax/' rel='bookmark' title='Windows PowerShell Version 3 Simplified Syntax'>Windows PowerShell Version 3 Simplified Syntax</a></li>
+<li><a href='http://powershell.org/wp/2012/12/21/writing-10961-remoting/' rel='bookmark' title='Writing 10961: Remoting'>Writing 10961: Remoting</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>The Scripting Games 2013 winners have not yet been announced, but for the 3rd year running, I&#8217;m in the lead for the &#8220;Learned Most from the Scripting Games&#8221; award. I&#8217;m making space for the prize on my bookshelf. Seriously, I play with PowerShell all the time and read lots of blogs, but nothing compares to looking at dozens of scripts and commands and seeing how people do things in the real world.</p>
+<p>One of the practices I&#8217;ve noticed is use of the <a href="http://msdn.microsoft.com/en-us/library/windows/desktop/system.management.automation.parameterattribute.helpmessage(v=vs.85).aspx">HelpMessage parameter attribute</a> to document a parameter. It&#8217;s a real thing, but I didn&#8217;t know that anyone used it any more.</p>
+<p>Here&#8217;s my help message about HelpMessage:</p>
+<p><b>Don&#8217;t use it!</b> Users can&#8217;t see it. It does no harm, but it has no value. Danger lurks in writing a HelpMessage instead of writing help that users can see. Write help that Get-Help gets, that is, XML help or comment-based help.</p>
+<p>Here&#8217;s what I&#8217;m talking about. This code is valid. The language permits it. But it&#8217;s not useful. And I saw it in several of the advanced solutions.</p><pre class="crayon-plain-tag">function Get-PowerShellLog
+{
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(Mandatory=$true, HelpMessage=&quot;Your message goes here&quot;)]
+        $InstanceID
+    )
+    Get-Eventlog -LogName &quot;Windows PowerShell&quot; -InstanceId $InstanceID
+}</pre><p>But Get-Help doesn&#8217;t get the HelpMessage string.</p>
+<p>There are two ways for the user to see this help message. Here&#8217;s one way. These commands get the value of the HelpMessage property of the parameter. I don&#8217;t think people run commands like these very often, but I don&#8217;t get out much.</p><pre class="crayon-plain-tag">#Windows PowerShell 3.0
+C:\&gt; ((Get-Command Get-PowerShellLog).ParameterSets.Parameters | 
+           Where-Object Name -eq InstanceId).HelpMessage
+Your message goes here
+
+#Windows PowerShell 2.0
+C:\&gt; ((Get-Command Get-PowerShellLog).ParameterSets | 
+         Foreach {$_.Parameters} | 
+         Where-Object {$_.Name -eq InstanceId).HelpMessage
+Your message goes here</pre><p>Here&#8217;s the other way. It works only on mandatory (required) parameters. When you omit a mandatory parameter, you get a message like this one:</p><pre class="crayon-plain-tag">PS C:\&gt; Get-PowerShellLog
+cmdlet Get-PowerShellLog at command pipeline position 1
+Supply values for the following parameters:
+(Type !? for Help.)
+InstanceID:</pre><p>And then you type &#8220;!?&#8221; to get the HelpMessage value.</p><pre class="crayon-plain-tag">InstanceID: !?
+Your message goes here</pre><p>You&#8217;ve never done that? Me neither!</p>
+<p>To get a sense of how often HelpMessage is used, I played Nate Silver with Kim&#8217;s famous test server. My dear friend, Kim Ditto, is famous for many things &#8212; she&#8217;s a fabulous person and a renowned Microsoft Certified Trainer &#8212; but, in addition, she set up and maintains a test server on which she&#8217;s installed almost all of the Windows PowerShell modules from Microsoft. I could not live without Kim&#8217;s test server.</p>
+<p>Here are the results. Out of 2468 commands with 8471 parameters, 8 have the HelpMessage attribute and none are mandatory, so the HelpMessage is <i>NEVER DISPLAYED</i> unless you go hunting for it.</p><pre class="crayon-plain-tag"># How many commands?
+PS C:\&gt; Invoke-Command -Session $s {(Get-Command).Count}
+2468
+
+# How many parameters?
+PS C:\&gt; $a = Invoke-Command -Session $s `
+        {(Get-Command).ParameterSets.Parameters.Count}
+8471
+
+# How many parameters have HelpMessage?
+PS C:\&gt; Invoke-Command -Session $s `
+       {((Get-Command).ParameterSets.Parameters | where HelpMessage).Count}
+8
+
+# How many of the parameters with HelpMessage are mandatory?
+PS C:\&gt; Invoke-Command -Session $s `
+        {((Get-Command).ParameterSets.Parameters | 
+          where HelpMessage -and isMandatory).Count}
+0</pre><p>If you want to be helpful, the correct way to provide help for a parameter in a script or function is this:</p><pre class="crayon-plain-tag">&lt;#
+.PARAMETER  InstanceId
+ Specifies the instance IDs of events in the 
+ event log. Get-PowerShellLog gets only logs
+ with the specified ID.
+#&gt;</pre><p>Or, this:</p><pre class="crayon-plain-tag">[Parameter(Mandatory=$true, HelpMessage="Your message goes here")]
+# Specifies the instance IDs of events in the 
+# event log. Get-PowerShellLog gets only logs
+# with the specified ID.
+$InstanceID</pre><p>Hope that&#8217;s helpful.</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/29/powershell-popup/' rel='bookmark' title='PowerShell PopUp'>PowerShell PopUp</a></li>
+<li><a href='http://powershell.org/wp/2011/10/19/windows-powershell-version-3-simplified-syntax/' rel='bookmark' title='Windows PowerShell Version 3 Simplified Syntax'>Windows PowerShell Version 3 Simplified Syntax</a></li>
+<li><a href='http://powershell.org/wp/2012/12/21/writing-10961-remoting/' rel='bookmark' title='Writing 10961: Remoting'>Writing 10961: Remoting</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/3cl6H44Pimo" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/06/a-helpful-message-about-helpmessage/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/06/a-helpful-message-about-helpmessage/</feedburner:origLink></item>
+		<item>
+		<title>Placing Comment-Based Help</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/5YUOCsQAaBw/</link>
+		<comments>http://powershell.org/wp/2013/05/03/placing-comment-based-help/#comments</comments>
+		<pubDate>Fri, 03 May 2013 19:03:39 +0000</pubDate>
+		<dc:creator>June Blender</dc:creator>
+				<category><![CDATA[PowerShell for Admins]]></category>
+		<category><![CDATA[archive directory]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3955</guid>
+		<description><![CDATA[What an amazing event. I&#8217;m now reading through each of the Advanced entries in a vain attempt to whittle the entries down to a short list. It&#8217;s an incredibly difficult task, which is testament to your skill and diligence. We are so lucky to have so many competent scripters in the community. As I read<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/03/placing-comment-based-help/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/03/ok-im-impressed-scripting-games-week-1/' rel='bookmark' title='OK i&#8217;m impressed: Scripting Games Week 1'>OK i&#8217;m impressed: Scripting Games Week 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/how-to-name-your-help-files/' rel='bookmark' title='How to Name Your Help Files'>How to Name Your Help Files</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-1-moving-old-files/' rel='bookmark' title='Event #1: Moving Old Files'>Event #1: Moving Old Files</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>What an amazing event. I&#8217;m now reading through each of the Advanced entries in a vain attempt to whittle the entries down to a short list. It&#8217;s an incredibly difficult task, which is testament to your skill and diligence. We are so lucky to have so many competent scripters in the community.</p>
+<p>As I read through the comments on each script, I&#8217;ve noticed several that say:</p>
+<p>&#8220;Help should be nested under the function to work properly.&#8221;</p>
+<p>Au contraire! This is not true and I want to make sure that people who see this comment are not misled. The Windows PowerShell team designed comment-based help to be really flexible.</p>
+<p>As I explained in <a href="http://go.microsoft.com/fwlink/?LinkID=144309">about_Comment_Based_Help</a>, you can put comment-based help for a function in one of three positions:</p>
+<ul>
+<li>At the beginning of the function body</li>
+<li>At the end of the function body</li>
+<li>On the line before the Function keyword</li>
+</ul>
+<p>So, all of these work.</p><pre class="crayon-plain-tag">function Move-OldFiles
+{
+&amp;lt;#
+.Synopsis         
+ Moves old log files to an archive directory.          
+#&amp;gt;
+      Param
+      (
+         [parameter(Mandatory=$true)]
+         [String]
+         $InputDirectory
+      )
+}</pre><p></p><pre class="crayon-plain-tag">function Move-OldFiles
+{
+  Param
+      (
+         [parameter(Mandatory=$true)]
+         [String]
+         $InputDirectory
+      )
+   #Script logic goes here
+
+&amp;lt;#
+.Synopsis         
+ Moves old log files to an archive directory.          
+#&amp;gt;
+}</pre><p></p><pre class="crayon-plain-tag">&amp;lt;#
+.Synopsis         
+ Moves old log files to an archive directory.          
+#&amp;gt;
+function Move-OldFiles
+{
+  Param
+      (
+         [parameter(Mandatory=$true)]
+         [String]
+         $InputDirectory
+      )
+   #Script logic goes here
+}</pre><p>If you place the comment-based help on the line before the Function keyword, make sure that there is, at most, one blank line between the end of theÂ comment-based help and the line with the function keyword. To avoid this problem, I always make sure that there are no blank lines between the end of the comment-based help and the Function keyword.</p>
+<p>When reading the comments about your solutions, please remember that we are all volunteers. Everyone who takes the time to comment on your solution is trying to help, and should be appreciated, but not every comment is correct. Trust, but verify!</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/03/ok-im-impressed-scripting-games-week-1/' rel='bookmark' title='OK i&#8217;m impressed: Scripting Games Week 1'>OK i&#8217;m impressed: Scripting Games Week 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/how-to-name-your-help-files/' rel='bookmark' title='How to Name Your Help Files'>How to Name Your Help Files</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-1-moving-old-files/' rel='bookmark' title='Event #1: Moving Old Files'>Event #1: Moving Old Files</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/5YUOCsQAaBw" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/03/placing-comment-based-help/feed/</wfw:commentRss>
+		<slash:comments>4</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/03/placing-comment-based-help/</feedburner:origLink></item>
+		<item>
+		<title>Scripting Games: What Should We Do With Comments?</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/RpFMv7Cc5gM/</link>
+		<comments>http://powershell.org/wp/2013/05/03/scripting-games-what-should-we-do-with-comments/#comments</comments>
+		<pubDate>Fri, 03 May 2013 19:02:08 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Scripting Games]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3956</guid>
+		<description><![CDATA[Right now, I&#8217;ve got the Scripting Games Web site built to only make comments visible to a entry&#8217;s author. Some of the comments have been a little snarky, and I don&#8217;t want to create an online argument forum. I&#8217;m curious what folks think we should do as a next step. I could, for example, make<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/03/scripting-games-what-should-we-do-with-comments/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/scripting-games-voting-continues/' rel='bookmark' title='Scripting Games Voting Continues!'>Scripting Games Voting Continues!</a></li>
+<li><a href='http://powershell.org/wp/2013/04/25/scripting-wife-comments-on-beginner-event-1/' rel='bookmark' title='Scripting Wife Comments on Beginner Event 1'>Scripting Wife Comments on Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/28/scripting-games-2013-have-started/' rel='bookmark' title='Scripting Games 2013 have started'>Scripting Games 2013 have started</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Right now, I&#8217;ve got the Scripting Games Web site built to only make comments visible to a entry&#8217;s author. Some of the comments have been a little snarky, and I don&#8217;t want to create an online argument forum.</p>
+<p>I&#8217;m curious what folks think we should do as a next step.</p>
+<p>I could, for example, make comments visible to everyone once voting has ended for an event (I don&#8217;t want to make comments visible while we&#8217;re still accepting comments, because it&#8217;ll run a big risk of creating a discussion, which isn&#8217;t the intent).</p>
+<p>We do have a plan to dump all the entries into static files for long-term reference; I could insert entries&#8217; comments at the end of each entry, in a PowerShell comment block.</p>
+<p>Or, we could just leave comments visible to the entry&#8217;s author. That provides a learning experience for the author, although not for the public, and only until we purge the database for the next event.</p>
+<p>Thoughts?</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/scripting-games-voting-continues/' rel='bookmark' title='Scripting Games Voting Continues!'>Scripting Games Voting Continues!</a></li>
+<li><a href='http://powershell.org/wp/2013/04/25/scripting-wife-comments-on-beginner-event-1/' rel='bookmark' title='Scripting Wife Comments on Beginner Event 1'>Scripting Wife Comments on Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/28/scripting-games-2013-have-started/' rel='bookmark' title='Scripting Games 2013 have started'>Scripting Games 2013 have started</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/RpFMv7Cc5gM" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/03/scripting-games-what-should-we-do-with-comments/feed/</wfw:commentRss>
+		<slash:comments>18</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/03/scripting-games-what-should-we-do-with-comments/</feedburner:origLink></item>
+		<item>
+		<title>Beginner Event Tips</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/ge61xqjx5ps/</link>
+		<comments>http://powershell.org/wp/2013/05/03/beginner-event-tips/#comments</comments>
+		<pubDate>Fri, 03 May 2013 15:57:10 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3945</guid>
+		<description><![CDATA[Folks, as we dive into Event 2, I want to offer some advice based on the comments I saw for Event 1. Don&#8217;t overthink the Beginner event. We&#8217;re not looking for a script or function &#8211; a one-liner, if possible. Don&#8217;t overdeliver. Avoid aliases and positional parameters &#8211; this is a practice outlined in the<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/03/beginner-event-tips/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/' rel='bookmark' title='Event 2 Opens / Event 1 Winding Down'>Event 2 Opens / Event 1 Winding Down</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/04/25/scripting-wife-comments-on-beginner-event-1/' rel='bookmark' title='Scripting Wife Comments on Beginner Event 1'>Scripting Wife Comments on Beginner Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Folks, as we dive into Event 2, I want to offer some advice based on the <em>comments</em> I saw for Event 1.</p>
+<ul>
+<li>Don&#8217;t overthink the Beginner event. We&#8217;re not looking for a script or function &#8211; a one-liner, if possible. Don&#8217;t overdeliver.</li>
+<li>Avoid aliases and positional parameters &#8211; this is a practice outlined in the Competitor Guide.</li>
+<li>TEST YOUR CODE. You can&#8217;t modify it. Also, judges can&#8217;t see any comment you might leave when &#8220;voting&#8221; on your own entry, so you can&#8217;t use comments to mitigate an error. TEST. Submitting an entry is like pushing a script into production.</li>
+<li>If there&#8217;s a straightforward, native way to do something &#8211; do it. People seemed to down-vote a lot of entries in Event 1 for using Robocopy. Not that it&#8217;s wrong&#8230; but the general community opinion seems to be, &#8220;use native commands when they exist and can solve the problem.&#8221;</li>
+</ul>
+<p>Remember, these aren&#8217;t my guidelines &#8211; this is what I&#8217;m seeing in the comments that I&#8217;m reviewing, and wanted to pass them along as a sense of what the community seems to favor and disfavor.</p>
+<p>&nbsp;</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/' rel='bookmark' title='Event 2 Opens / Event 1 Winding Down'>Event 2 Opens / Event 1 Winding Down</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/04/25/scripting-wife-comments-on-beginner-event-1/' rel='bookmark' title='Scripting Wife Comments on Beginner Event 1'>Scripting Wife Comments on Beginner Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/ge61xqjx5ps" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/03/beginner-event-tips/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/03/beginner-event-tips/</feedburner:origLink></item>
+		<item>
+		<title>OK iâm impressed: Scripting Games Week 1</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/GQZ1-JLTL2A/</link>
+		<comments>http://powershell.org/wp/2013/05/03/ok-im-impressed-scripting-games-week-1/#comments</comments>
+		<pubDate>Fri, 03 May 2013 14:44:21 +0000</pubDate>
+		<dc:creator>Glenn Sizemore</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[Scripting Games]]></category>
+		<category><![CDATA[Glenn Sizemore]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3935</guid>
+		<description><![CDATA[Well guys, and gals another year has passed, and the annual scripting games are upon us again.Â  After a week of reviewing submissions for their technique and style I must say that I am truly impressed!Â  As a community the average ability seems to be growing by leaps and bounds.Â  Thatâs not to say weâre<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/03/ok-im-impressed-scripting-games-week-1/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/01/why-doesnt-my-validatescript-work-correctly/' rel='bookmark' title='Why Doesn&#8217;t My ValidateScript() work correctly?'>Why Doesn&#8217;t My ValidateScript() work correctly?</a></li>
+<li><a href='http://powershell.org/wp/2013/03/27/strategy-for-handling-2013-scripting-games-events-2/' rel='bookmark' title='Strategy for Handling 2013 Scripting Games Events'>Strategy for Handling 2013 Scripting Games Events</a></li>
+<li><a href='http://powershell.org/wp/2013/03/27/strategy-for-handling-2013-scripting-games-events/' rel='bookmark' title='Strategy for Handling 2013 Scripting Games Events'>Strategy for Handling 2013 Scripting Games Events</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Well guys, and gals another year has passed, and the annual scripting games are upon us again.Â  After a week of reviewing submissions for their technique and style I must say that I am truly impressed!Â  As a community the average ability seems to be growing by leaps and bounds.Â  Thatâs not to say weâre all Samurai just yet, but weâre getting there!</p>
+<p>Before I go off and nit-pick I want to congratulate you all on a small mountain of really well written scripts.Â  Some of the things that the community was preaching 5 years ago are now just standard.Â  Stuff like comment your code, format for readability, and Parameters.Â  At this point Iâm convinced those who stillÂ aren&#8217;tÂ conforming are simply non-conformist and well thatâs a lost cause.Â  For the rest of us great work and keep it up!</p>
+<p><strong>Where is the Help!<br />
+</strong><span style="font-size: 1rem;line-height: 1.714285714">What IÂ </span>didn&#8217;t<span style="font-size: 1rem;line-height: 1.714285714">Â see enough of in the advanced category is help.Â  Honestly if youâre going to write a 200 line script fill out the help!Â  Itâs not that hard and it is THE difference between a good script and a great solution! Itâs also one of the fundamental differences between hacking and tool building, both are focused around automating a given problem set.Â  The hacker just gets it to work, the tool builder makes it usable by the masses.Â  If you havenât figured it out yet the real money is in tool building, Iâm just sayin!</span></p>
+<p><strong>Trust but Validate.<br />
+</strong><span style="line-height: 1.714285714;font-size: 1rem">I was pleasantly surprised by the amount of error handling in this first round of submissions, however I was disappointed by the lack of parameter validation. Â When done correctly parameter validation can remove most of the potential errors a script can run into, and the best part is you find out that itâs not going to work before the script does anything!Â  For example in this weekâs scenario every single script was asked to supply a source and destination path.Â  The following would have removed all but an access denied error.</span></p><pre class="crayon-plain-tag">Param ( 
+    [Parameter(Mandatory=$true, ValuefrompipelineByPropertyName=$true)]
+    [ValidateScript({Test-Path $_ -PathType Container})] 
+    [Alias("FullName")]
+    [string]$Source
+,
+    [Parameter(Mandatory=$true, ValuefrompipelineByPropertyName=$true)]
+    [ValidateScript({Test-Path $_ -PathType Container})] 
+    [Alias("FullName")]
+    [string]$Destination
+)</pre><p><span style="font-size: 1rem;line-height: 1.714285714">This is the equivalent of filter to the left, andÂ </span>I&#8217;ve<span style="font-size: 1rem;line-height: 1.714285714">Â talked to endless developers who are a little jealous of our ability to use an arbitrary scriptblock for parameter validation. For more static values the ValidateSetÂ attribute will perform the same function, but with the added benefit of Intelli-sense and tab completion.<em> Guys use this</em> Iâm telling you itâs one of the most powerful features in PowerShell and I just donât see it use often enough, but then again<a href="http://blogs.technet.com/b/heyscriptingguy/archive/2011/05/15/simplify-your-powershell-script-with-parameter-validation.aspx"> Iâve been tilting at this windmill for years now.</a></span></p>
+<p><strong>Parameter names<br />
+</strong><span style="line-height: 1.714285714;font-size: 1rem">This one is a little more nitpicky than the average, but honestly there simply isnât an excuse for a script with three parameters to all start with the same letter.Â  Meaning the following is just disrespectful to yourself and your users.</span></p><pre class="crayon-plain-tag">Param(            
+    [String]$ArchiveSource,            
+    [String]$ArchiveDestination,            
+    [String]$ArchiveAge            
+)</pre><p>I mean thatâs a no-brainer right?Â  I donât assume malice here just a lack of focus.Â  Anyone who stops and thinks about it immediately sees the problem, and solution. So I guess what Iâm asking is that we collectively take a second to think about usability.Â  For those of you that havenât had your coffee yet. The solution is that since three parameters all contain Archive we need to move that bit from the beginning of each parameter name.Â Â  In this case since there is no real need to differentiate I would suggest removing it all together.</p><pre class="crayon-plain-tag">Param(            
+    [String]$Source,            
+    [String]$Destination,            
+    [String]$Age            
+)</pre><p>Here weâre focusing on whatâs really important which makes the parameters easier to comprehend, but also lets us get to TAB faster which is a huge part of usability!</p>
+<p><strong>Bring it in<br />
+</strong><span style="font-size: 1rem;line-height: 1.714285714">In summary all in all I would say we had a fantastic showing for our industry this initial week.Â  I really like the new site and voting has been very productive which is nice.Â  As we head into week two I look forward to whatâs to come as we collectively build upon what weâve learned this week.</span></p>
+<p><span style="line-height: 1.714285714;font-size: 1rem">~Glenn</span></p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/01/why-doesnt-my-validatescript-work-correctly/' rel='bookmark' title='Why Doesn&#8217;t My ValidateScript() work correctly?'>Why Doesn&#8217;t My ValidateScript() work correctly?</a></li>
+<li><a href='http://powershell.org/wp/2013/03/27/strategy-for-handling-2013-scripting-games-events-2/' rel='bookmark' title='Strategy for Handling 2013 Scripting Games Events'>Strategy for Handling 2013 Scripting Games Events</a></li>
+<li><a href='http://powershell.org/wp/2013/03/27/strategy-for-handling-2013-scripting-games-events/' rel='bookmark' title='Strategy for Handling 2013 Scripting Games Events'>Strategy for Handling 2013 Scripting Games Events</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/GQZ1-JLTL2A" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/03/ok-im-impressed-scripting-games-week-1/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/03/ok-im-impressed-scripting-games-week-1/</feedburner:origLink></item>
+		<item>
+		<title>Scripting Games 2013: Event 1 âFavoriteâ and âNot So Favoriteâ Submissions</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/sklOz36IwV8/</link>
+		<comments>http://powershell.org/wp/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/#comments</comments>
+		<pubDate>Fri, 03 May 2013 03:07:27 +0000</pubDate>
+		<dc:creator>Boe Prox</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[blog post]]></category>
+		<category><![CDATA[submission]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3927</guid>
+		<description><![CDATA[As a follow-up to my previous blog post, I plan to pick out a submission or two or three which stood out as my personal favorite and least favorite and tell you why I think this by pointing pieces of code that was either put together nicely or could have been improved in one way<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/' rel='bookmark' title='Scripting Games 2013: Thoughts After Event 1'>Scripting Games 2013: Thoughts After Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-beginner-event-1/' rel='bookmark' title='2013 Scripting Games: Beginner Event 1'>2013 Scripting Games: Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-advanced-event-1/' rel='bookmark' title='2013 Scripting Games: Advanced Event 1'>2013 Scripting Games: Advanced Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>As a follow-up to my <a href="http://learn-powershell.net/2013/05/01/scripting-games-2013-thoughts-after-event-1/" target="_blank">previous blog</a> post, I plan to pick out a submission or two or three which stood out as my personal favorite and least favorite and tell you why I think this by pointing pieces of code that was either put together nicely or could have been improved in one way or another. Depending on my time, I will do at least 1 Advanced and 1 Beginner submission for both âFavoriteâ and âNot so Favorite. I&#8217;ll start out by listing the code and then discussing it bullet point style to highlight my thoughts.Â So with that, lets begin this journey through the Event 1 submissions by <a href="http://learn-powershell.net/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/">following this link to my blog!</a></p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/' rel='bookmark' title='Scripting Games 2013: Thoughts After Event 1'>Scripting Games 2013: Thoughts After Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-beginner-event-1/' rel='bookmark' title='2013 Scripting Games: Beginner Event 1'>2013 Scripting Games: Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-advanced-event-1/' rel='bookmark' title='2013 Scripting Games: Advanced Event 1'>2013 Scripting Games: Advanced Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/sklOz36IwV8" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/02/scripting-games-2013-event-1-favorite-and-not-so-favorite-submissions/</feedburner:origLink></item>
+		<item>
+		<title>Judge Notes: Event 1 â and Thank you for participating!</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/0QTDnifCoeM/</link>
+		<comments>http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/#comments</comments>
+		<pubDate>Fri, 03 May 2013 00:54:48 +0000</pubDate>
+		<dc:creator>Jason Helmick</dc:creator>
+				<category><![CDATA[PowerShell for Admins]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3919</guid>
+		<description><![CDATA[Itâs amazing to see all the participants this year joining in the Scripting Games. I have so much respect for everyone willing to share their ideas and contribute to the games -Â  Thank you! â it takes a lot of guts to put your ideas in front of everyone and be judged. You ARE helping<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-1-moving-old-files/' rel='bookmark' title='Event #1: Moving Old Files'>Event #1: Moving Old Files</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Itâs amazing to see all the participants this year joining in the Scripting Games. I have so much respect for everyone willing to share their ideas and contribute to the games -Â  Thank you! â it takes a lot of guts to put your ideas in front of everyone and be judged. You ARE helping the entire community â You DO have my respect.</p>
+<p>I want to start this first blog entry with my perspective and offer a little help along the way. Some of the things Iâve seen have really impressed me â Iâve even learned a few new tricks â and some things Iâm seeing should not be happening. Iâll focus on the beginners challenge for Dr. Scripto in this blog.</p>
+<p>Many folks attempted to solve this problem in a one-liner. There is nothing wrong with that, but I noticed many people going through some pretty chewing code to make the one-liner work. Donât be afraid to make a script if your nesting Foreach-Object inside Foreach-Object. <img src="http://powershell.powershellorginc.netdna-cdn.com/wp/wp-includes/images/smilies/icon_wink.gif?bb7cbb" alt=';)' class='wp-smiley' /> </p>
+<p>A couple of gottachaâs â</p>
+<ul>
+<li>Make sure you understand the capabilities of the cmdletâs that youâre using. It can make your solution easier to write, easier to read, and just plain easier. I saw a lot of folks using Get-Childitem twice like this:</li>
+</ul>
+<p><strong>get-childitem C:\Application\Log -directory | get-childitem -name &#8220;*.log&#8221;|</strong></p>
+<p>Many folks did three one-liners, one for each folder. Get-Childitem can make this easier with the ârecurse parameter.</p>
+<p><strong>Â Get-ChildItem -Path C:\Application\Log -filter *.LOG -recurse |</strong></p>
+<ul>
+<li>Careful with those aliases my friend. I know that many people posted the code as if they were sitting at a console and solving the problem. In interactive mode, you often use aliasâs to make the typing shorter â and if you posted a one-liner that used aliases, I forgave you for that. But if you posted a full script and used aliases â gottacha. In other words, when you script, try to be as verbose as you can. It makes readability easier and future maintainability far easier. As an example, I saw a lot of this:</li>
+</ul>
+<p><strong>Gci c:\application\log âfilter *.log ârecurse | ?{something} |%{something}</strong></p>
+<p>I donât know about you, but this is not easy for someone else to read and should not be in a script. Tab completion makes is fairly easy for you to keep things readable without a lot of additional typing.</p>
+<p><strong>Get-ChildItem âPath c:\application\log âFilter *.log âRecurse | Where-Object{something} | Foreach-Object{something}</strong></p>
+<ul>
+<li>And my last tip for this blog? I canât believe Iâm still seeing this after all these years &#8211; and maybe Iâm overly sensitive to it &#8211; but please stop using WRITE_HOST!</li>
+</ul>
+<p>Try Write-Output instead, or if you want to just document your code, how about Write-Verbose. If you want to warn the user, then Write-Warning. All of these are far better, more flexible, and less problematic going forward. Please, no more scripts with write-host. I have a tendency to just ignore your solution and vote down your script.</p>
+<p>Again, to everyone â thank you for having the courage to participate and join the fun in the Scripting Games. We all (myself included) learn so much from this!</p>
+<p>Knowledge is PowerShell,</p>
+<p>Jason</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/event-1-moving-old-files/' rel='bookmark' title='Event #1: Moving Old Files'>Event #1: Moving Old Files</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/0QTDnifCoeM" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/</feedburner:origLink></item>
+		<item>
+		<title>Event #1: Moving Old Files</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/IDkMqM1FhFw/</link>
+		<comments>http://powershell.org/wp/2013/05/02/event-1-moving-old-files/#comments</comments>
+		<pubDate>Thu, 02 May 2013 21:31:40 +0000</pubDate>
+		<dc:creator>June Blender</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[regular expression]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3904</guid>
+		<description><![CDATA[As a celebrity judge, I&#8217;m not required to blog â I&#8217;m just here for my good looks :&#62; &#8212; but I&#8217;m having a great time reading the blogs posted by the Expert Judges about the Event #1 candidate solutions.Â  Much of the judging is subjective, but I&#8217;ll add the criteria that I use to distinguish<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/02/event-1-moving-old-files/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/01/08/select-string-information-on-matching-files/' rel='bookmark' title='Select-Stringâinformation on matching files'>Select-Stringâinformation on matching files</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/' rel='bookmark' title='Judge Notes: Event 1 &#8211; and Thank you for participating!'>Judge Notes: Event 1 &#8211; and Thank you for participating!</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>As a celebrity judge, I&#8217;m not required to blog â I&#8217;m just here for my good looks :&gt; &#8212; but I&#8217;m having a great time reading the blogs posted by the Expert Judges about the <a href="http://blogs.technet.com/b/heyscriptingguy/archive/2013/04/25/2013-scripting-games-beginner-event-1.aspx">Event #1</a> candidate solutions.Â  Much of the judging is subjective, but I&#8217;ll add the criteria that I use to distinguish a working solution from a great solution.</p>
+<p>Before I do, though, I want to congratulate everyone who submitted an entry. Most of the entries work and you probably learned just from playing with the challenge. Keep it up and come back year after year.</p>
+<p>One hint to everyone: <b>TEST!</b> Most of the entries work, but many fail if the directory for the application (e.g. App1 in \\NASServer\Archives\App1) does not already exist. And, a few fail with regular expression errors on the Replace operator (more in the blog). There are lots of great test strategies, but you can just run your code on file in your own directories or step through the code in the Windows PowerShell ISE debugger.</p>
+<h2>Get-Help: An Archival Atrocity</h2>
+<p>Let&#8217;s start with a quick review of the event challenge. You can read the beginner challenge<a href="http://blogs.technet.com/b/heyscriptingguy/archive/2013/04/25/2013-scripting-games-beginner-event-1.aspx"> here</a>.</p>
+<p>Basically, the task is to move log files older than 90 days old from their current locations in application-specific subdirectories of C:\Application\Log Â (such as C:\Application\Log\&lt;App-name&gt;\&lt;GUID&gt;.log) to an archive share, \\NASServer\Archives.</p>
+<p>The files have GUID filenames (read: you can&#8217;t predict them). You need to maintain the subdirectory structure, so if a log file starts in the App582 subdirectory of C:\Application\Log, after the move, it should be in the App852 subdirectory of NASServer\Archives.</p>
+<p>The final instruction/hint is that the applications generate the files and never touch them again. I&#8217;m not an expert, but I interpreted this to mean that the CreationTime property and the LastWriteTime property of these log files will be the same and you can use either in your solution. (Is that right?)</p>
+<p>The advanced challenge involves the same task, but generalized into a reusable tool, so you want to create a script with parameters for the log path and archive paths. This is one of those advanced challenges that many beginners should be able to do. For giggles, try it on your beginner solution.</p>
+<p>To recap, here are the elements of this challenge and solutions, all of which I think are acceptable in a beginner challenge.</p>
+<ul>
+<li>Find the log files</li>
+<li>Get only the ones that are at least 90 days old (CreationTime or LastWriteTime)</li>
+<li>Move them to the same subdirectory in the archive directory</li>
+</ul>
+<p>Finding the log files is pretty easy:</p><pre class="crayon-plain-tag">Get-ChildItem C:\Application\Log\*.log &ndash;Recurse 
+Get-ChildItem C:\Application\Log  -Include *.log  &ndash;Recurse 
+Get-ChildItem C:\Application\Log  -Filter *.log  &ndash;Recurse 
+Get-ChildItem C:\Application\Log\ *\*.log</pre><p>Calculating 90 days is only a bit harder:</p><pre class="crayon-plain-tag">(Get-Date).AddDays(-90)     #Yes, a negative number!
+(Get-Date).Subtract(New-TimeSpan -Days 90)
+((Get-Date) - $file.LastWriteTime).Days -gt 90</pre><p>Because the only really tricky part in this challenge is moving the file and maintaining the directory structure, I&#8217;m concentrating on that part.</p>
+<ul>
+<li>First,Â  you need to get the current subdirectory and make sure the file goes in that same subdirectory in the new location.</li>
+<li>Second, if you try to copy or move an item to a directory that doesn&#8217;t exist, the command fails â and the Force parameter will not build the path for you.</li>
+</ul>
+<h2>Get-MyVote</h2>
+<p>Here are the elements that I look for in a solution.</p>
+<ul>
+<li><b>Preserve the path</b>:Â  I look for solutions that preserve or build the new path correctly. This is required by the challenge, but it&#8217;s also a place for some creativity.</li>
+<li><b>Test-Path/New-Item</b>: I look for solutions that test to see if the path exists in the new location (Test-Path) and creates the directories in the path if they don&#8217;t already exist, typically by using Mkdir (md) or New-Item âType Directory.</li>
+<li><b>New-Item | Out-Null</b>: Â When you create a new path, New-Item and Mkdir return a directory object. This can be confusing to users who run your script, so I give extra points for suppressing the output. I typically do this by piping the output to Out-Null. Here&#8217;s a possible solution, but I&#8217;m open to creative variation.<br />
+<pre class="crayon-plain-tag">New-Item -Type Directory -Path C:\Application\Log\$p | Out-Null</pre>
+</li>
+<li><b>Help</b> (of course). More below</li>
+<li><b>Test. </b>Don&#8217;t share a solution that you haven&#8217;t tested. There are many ways to test, but running the solution on datasets with different elements is a great way. I always run my code in the Windows PowerShell ISE debugger before using it or sharing it. <b></b></li>
+</ul>
+<h2>Get-Help</h2>
+<p>All shared functions and scripts should have help. Help helps the end user and makes the script maintainable. Unless you plan a use a command once and toss it, you need help.</p>
+<p>Comment-based help for a simple script like this is easy to write:<br />
+&lt;#</p><pre class="crayon-plain-tag">.SYNOPSIS
+  Move-Oldfiles.ps1
+  By juneb 4/25/2013
+.DESCRIPTION
+  Moves files that are at least 90 days old from a
+  subdirectory of C:\Application\Log to the same
+  subdirectory in NASServer\Archives.
+.EXAMPLE
+ Move-OldFiles.ps1</pre><p>#&gt;<br />
+Additional comments are great, especially if you&#8217;re doing something clever. For example, if you use the $Path.Directory.Name to get the path (thanks to <a href="http://becomelotr.wordpress.com/2013/04/30/event-1-my-way/">Bartek Bielawski</a> for this hint), a comment that it gets only the immediate parent directory would be very helpful to someone reading the script.</p>
+<p>I actually deduct points for &#8220;help&#8221; that Get-Help can&#8217;t get, such as this sort of stuff:</p><pre class="crayon-plain-tag"># This script moves files that are older than 90 days
+# old from a subdirectory of C:\Application\Log to the
+# same subdirectory in NASServer\Archives. I wrote it
+# for Scripting Games 2013, Event 1</pre><p>It&#8217;s so easy to do it right that doing it wrong is pretty silly.</p>
+<h2>Efficiency: Calculating 90 Days</h2>
+<p>I&#8217;ve seen a lot of this approach in solutions, usually in one-liners.</p><pre class="crayon-plain-tag">Get-ChildItem C:\Application\Log\*\*.log | 
+    Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-90)} | 
+    Move-Item -Destination ...</pre><p>This approach recalculates the archive date FOR EVERY FILE. That would make sense only if the script took more than a day to run. Computers are pretty fast these days, but there&#8217;s no reason to be purposefully inefficient. It&#8217;s much better to calculate the archive date once, save it, and reuse it.</p><pre class="crayon-plain-tag">$ArchiveDate = (Get-Date).AddDays(-90)
+Get-ChildItem C:\Application\Log\*\*.log | 
+   Where-Object {$_.LastWriteTime -lt $ArchiveDate} | 
+   Move-Item -Destination ...</pre><p></p>
+<h2>Get-ChildItem: -File, -Directory -Hidden -ReadOnly, -Attributes</h2>
+<p>The FileSystem provider in Windows PowerShell 3.0 adds awesome new parameters to the Get-ChildItem cmdlet. For help, Get-Help <a href="http://technet.microsoft.com/en-us/library/hh847897.aspx">Get-ChildItem for FileSystem</a>. I give extra points to people who use them correctly and deduct points for the more old-fashioned PSISContainer.</p>
+<p>The following code works:</p><pre class="crayon-plain-tag">Get-ChildItem C:\Application\Log -Recurse | Where-Object {$_.PSIsContainer}</pre><p>But the preferred version uses the new features and it is really much easier to interpret:</p><pre class="crayon-plain-tag">Get-ChildItem C:\Application\Log -Directory -Recurse</pre><p>On the same note, I noticed the following:</p><pre class="crayon-plain-tag">Get-ChildItem -Attributes D ...</pre><p>Like a lot of solutions, this works &#8212; it gets only directories in the path &#8212; but it&#8217;s more confusing than the simpler equivalent:</p><pre class="crayon-plain-tag">Get-ChildItem -Directory</pre><p>The Attributes parameter is designed for attribute combinations and for attributes that cannot be expressed with the simpler parameters, like this expression, which gets files that are compressed and not hidden.</p><pre class="crayon-plain-tag">Get-ChildItem -File -Attributes Compressed+!Hidden</pre><p></p>
+<h2>Regular Expressions in Replace Statements</h2>
+<p>One of the tricky parts of this challenge was preserving the original path in the new archive directory. There were many clever ways to do this. But several (presumably untested) solutions will fail with a regular expression error.</p>
+<p>For example:</p><pre class="crayon-plain-tag">foreach ($file in $files)
+{
+    $newName = $file.fullname -replace 'C:\Application\Log','\\NASServer\Archives'
+    move-item -Destination $newName
+}</pre><p>Generates this error:</p><pre class="crayon-plain-tag">Regular expression pattern is not valid: C:\Application\Log.
+At C:\ps-test\ScriptingGames2013\Move-TestEsc.ps1:5 char:5
++&nbsp;&nbsp;&nbsp;&nbsp; $newName = $file.fullname -replace 'C:\Application\Log','\\NASServer\Archive ...
++&nbsp;&nbsp;&nbsp;&nbsp; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ CategoryInfo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : InvalidOperation: (C:\Application\Log:String) [], RuntimeException
++ FullyQualifiedErrorId : InvalidRegularExpression</pre><p>The problem here is that you didn&#8217;t intend to supply a regular expression as input, but the Replace operator interprets the text that it is replacing (the first operand) as a regular expression. In this case, it interprets the backslashes as escape characters.Â  To resolve the error, escape the backslashes by doubling them, that is, preceding each backslash with another backslash.</p>
+<p>For example:</p><pre class="crayon-plain-tag">-replace 'C:\\Application\\Log' ...</pre><p>Here is the corrected code:</p><pre class="crayon-plain-tag">foreach ($file in $files)
+{
+    $newName = $file.fullname -replace 'C:\\Application\\Log','\\NASServer\Archives'
+    move-item -Destination $newName
+}</pre><p>You don&#8217;t need to escape the backslash in the replacement text (second operand), because the Replace operator doesn&#8217;t interpret that text as a regular expression. It just pastes it.</p>
+<p>NOTE: The <a href="http://msdn.microsoft.com/en-us/library/fk49wtc1.aspx">Replace method of strings</a> does not use regular expressions, so you don&#8217;t need to worry about those backslashes.</p><pre class="crayon-plain-tag">$newName = ($file.fullname).Replace('C:\ps-test','\\NASServer\Archives')</pre><p></p>
+<h2>Simplify Booleans</h2>
+<p>Here&#8217;s a very frequent pattern:</p><pre class="crayon-plain-tag">if ($a -eq $true) {&amp;lt;do this&amp;gt;} elseif ($a -eq $false) {&amp;lt;do that&amp;gt;}</pre><p>But notice that:</p><pre class="crayon-plain-tag">$a -eq $true</pre><p>Is equivalent to:</p><pre class="crayon-plain-tag">$a</pre><p>Similarly:</p><pre class="crayon-plain-tag">$a -eq $false</pre><p>Is equivalent to:</p><pre class="crayon-plain-tag">!$a</pre><p>And, if $a is not true, the only alternative, is that it&#8217;s false. So you can simplify that original code to:</p><pre class="crayon-plain-tag">if ($a) {&amp;lt;do this&amp;gt;} else {&amp;lt;do that&amp;gt;}</pre><p>So, when you see yourself typing:</p><pre class="crayon-plain-tag">Where {$_.PSIsContainer -eq $true}</pre><p>You can react immediately and change it to:</p><pre class="crayon-plain-tag">Where {$_.PSIsContainer }</pre><p>Or change:</p><pre class="crayon-plain-tag">$_.PsISContainer -ne $True</pre><p>To:</p><pre class="crayon-plain-tag">!$_.PsISContainer</pre><p>A side note: In some languages, $a is true if it contains a true statement or any numeric value other than zero. In Windows PowerShell $a is true if it contains a true statement or a value of 1; otherwise, it is false.</p>
+<h2>Enumerating the paths</h2>
+<p>Many of the solutions included enumerated paths, like this:</p><pre class="crayon-plain-tag">Get-Childitem -Path &quot;C:\Application\Log\App1&quot;, `
+    &quot;C:\Application\Log\OtherApp&quot;, `
+    &quot;C:\Application\Log\OtherApp&quot; -Recurse ...</pre><p>I feel badly, but I think these folks misinterpreted examples to be absolute paths. It&#8217;s really important for us to write the challenges clearly and unambiguously, especially because we have a truly international audience, but participants need to read carefully, too.</p>
+<h2>Don&#8217;t use aliases</h2>
+<p>Aliases are terrific for interactive commands and commands that you don&#8217;t share with others. But for anything else, including the Scritping Games, avoid them. Can you imagine a beginner trying to intepret a solution in which &#8220;?&#8221; is used instead of Where-Object? How would the person search for that &#8220;?&#8221;?Â  Because understanding is the goal, I have no trouble with eliminating the &#8220;Object&#8221; in Where-Object, Sort-Object, Select-Object, but it&#8217;s better to leave it in.</p>
+<p>In general, you should also include the names of positional parameters, although I don&#8217;t mind omitting the most frequently used ones. Other people might be pickier, but I don&#8217;t use &#8220;Where-Object -Property&#8221; or &#8220;Get-ChildItem -Path&#8221; in my own code and I don&#8217;t require it from others.</p>
+<h2>One-Liners</h2>
+<p>A final note: one-liners are very useful, but I don&#8217;t count lines of code or characters in a command when evaluating solutions. Solutions that use fancy regular expression statements are impressive but they can be difficult to interpret and maintain. If you can get your code onto one line, that&#8217;s terrific, but it&#8217;s not necessary and I don&#8217;t give it any extra points.</p>
+<p>Now, we can get ready for Event #2. Good luck, everyone!</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/' rel='bookmark' title='Judge Notes for Event 1'>Judge Notes for Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/01/08/select-string-information-on-matching-files/' rel='bookmark' title='Select-Stringâinformation on matching files'>Select-Stringâinformation on matching files</a></li>
+<li><a href='http://powershell.org/wp/2013/05/02/judge-notes-event-1-and-thank-you-for-participating/' rel='bookmark' title='Judge Notes: Event 1 &#8211; and Thank you for participating!'>Judge Notes: Event 1 &#8211; and Thank you for participating!</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/IDkMqM1FhFw" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/02/event-1-moving-old-files/feed/</wfw:commentRss>
+		<slash:comments>7</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/02/event-1-moving-old-files/</feedburner:origLink></item>
+		<item>
+		<title>Episode 226 â PowerScripting Podcast â The Virtual PC Guy Ben Armstrong talks virtualization and PowerShell</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/JEwkqqWJXxY/</link>
+		<comments>http://powershell.org/wp/2013/05/02/episode-226-powerscripting-podcast-the-virtual-pc-guy-ben-armstrong-talks-virtualization-and-powershell/#comments</comments>
+		<pubDate>Thu, 02 May 2013 21:00:31 +0000</pubDate>
+		<dc:creator>PowerScripting Podcast</dc:creator>
+				<category><![CDATA[External Feeds]]></category>
+		<category><![CDATA[Podcasts]]></category>
+		<category><![CDATA[Ben Armstrong]]></category>
+		<category><![CDATA[Don Jones]]></category>
+		<category><![CDATA[Jason Cabal]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?guid=8c9b8752bf8fac4c5d75659545792ea2</guid>
+		<description><![CDATA[Ben Armstrong, the Virtual PC Guy!
+News
+
+
+PowerShell version 4.0?
+
+
+MVP Don Jones will be speaking May 14th at the Mississippi PowerShell User Group
+
+
+Don Jones has released &#8220;The Big Book of PowerShell Gotchas&#8221; for free
+
+
+IT Pro Camp comes ...<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/23/use-powershell-to-get-name-and-ip-address-of-virtual-machines/' rel='bookmark' title='Use PowerShell to Get Name and IP Address of Virtual Machines'>Use PowerShell to Get Name and IP Address of Virtual Machines</a></li>
+<li><a href='http://powershell.org/wp/2013/01/17/starting-virtual-machines-for-wsus/' rel='bookmark' title='Starting virtual machines for WSUS'>Starting virtual machines for WSUS</a></li>
+<li><a href='http://powershell.org/wp/2009/04/14/get-scripting-podcast-episode-9-scott-herold-virtualization-ecoshell-initiative/' rel='bookmark' title='Get-Scripting Podcast Episode 9 &#8211; (Scott Herold &#8211; Virtualization EcoShell Initiative)'>Get-Scripting Podcast Episode 9 &#8211; (Scott Herold &#8211; Virtualization EcoShell Initiative)</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p dir="ltr" style="line-height: 1; margin-top: 0pt; margin-bottom: 0pt; display: inline !important;"><span style="font-size: 13px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">Ben Armstrong, the Virtual PC Guy!</span></p>
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt; text-align: justify;"><span style="font-size: 19px; font-family: Verdana; background-color: transparent; font-weight: bold; vertical-align: baseline; white-space: pre-wrap;">News</span></p>
+<ul style="margin-top: 0pt; margin-bottom: 0pt;">
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><a href="http://withinwindows.com/within-windows/2013/4/7/windows-81-powershell-40-and-new-cmdlets?utm_source=feedly" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">PowerShell version 4.0?</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><span style="vertical-align: baseline; white-space: pre-wrap;">MVP Don Jones will be speaking May 14th at the </span><a href="http://mspsug.com/2013/04/23/up-next-powershell-mvp-don-jones/" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">Mississippi PowerShell User Group</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><span style="vertical-align: baseline; white-space: pre-wrap;">Don Jones has released </span><a href="http://powershell.org/wp/books/the-big-book-of-powershell-gotchas-free/" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">&ldquo;The Big Book of PowerShell Gotchas&rdquo;</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"> for free</span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><a href="http://itprocamp.com/jacksonville/jacksonville-it-pro-camp/" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">IT Pro Camp comes to Jacksonville, FL on June 15th</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><a href="http://www.powershellmagazine.com/2013/04/10/powergui-script-editor-gets-full-support-for-powershell-3-0/" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">PowerGUI gets PowerShell 3.0 support</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><a href="http://powershell.org/wp/2013/04/22/summit-downloads/" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">Presentation downloads from the PowerShell Summit</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline; margin-left: -24px;">
+<p dir="ltr" style="line-height: 1.15; margin-top: 0pt; margin-bottom: 0pt;"><span style="vertical-align: baseline; white-space: pre-wrap;">PowerShell Summit 2013 </span><a href="http://www.youtube.com/watch?v=PRdaMoO6UWE&amp;feature=youtu.be" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">Thank you video</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+</ul>
+<h2 dir="ltr" style="line-height: 1; margin-top: 11.25pt; margin-bottom: 11.25pt;"><span style="font-size: 19px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">Interview</span><span style="font-size: 19px; font-family: Verdana; background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"></span></h2>
+<p dir="ltr" style="line-height: 1; margin-top: 0pt; margin-bottom: 0pt; margin-right: 4.5pt;"><span style="font-size: 13px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">Guests &#8211; Ben Armstrong</span><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;"></span></p>
+<h4 dir="ltr" style="line-height: 1; margin-top: 12.75pt; margin-bottom: 12.75pt;"><span style="font-size: 13px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">Links</span></h4>
+<ul style="margin-top: 0pt; margin-bottom: 0pt;">
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline;">
+<p dir="ltr" style="line-height: 1; margin-top: 0pt; margin-bottom: 0pt; margin-right: 4.5pt;"><a href="http://blogs.msdn.com/b/virtual_pc_guy/" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">Virtual PC Guy Blog</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline;">
+<p dir="ltr" style="line-height: 1; margin-top: 0pt; margin-bottom: 0pt; margin-right: 4.5pt;"><a href="http://twitter.com/VirtualPCGuy" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">http://twitter.com/VirtualPCGuy</span></a><span style="vertical-align: baseline; white-space: pre-wrap;"></span></p>
+</li>
+</ul>
+<h4 dir="ltr" style="line-height: 1; margin-top: 12pt; margin-bottom: 2pt;"><span style="font-size: 13px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">Chatroom Buzz</span></h4>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;11MikeFRobbins&gt; Don Jones is speaking for the Mississippi PowerShell User Group on May 14th:</span><a href="http://mspsug.com/2013/04/23/up-next-powershell-mvp-don-jones/" style="text-decoration: none;"><span style="font-size: 13px; font-family: Verdana; color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">http://mspsug.com/2013/04/23/up-next-powershell-mvp-don-jones/</span></a><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;"></span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;13JasonMArcher&gt; at the summit, the Jason Cabal had its first meeting</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;JonWalz&gt; Jason cabal?</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;JonWalz&gt; I bet there is a good story behind that one</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;5JHofferle&gt; Yeah&#8230;if I ever forgot anyone&#8217;s name&#8230;I just called them Jason and had a 40% chance of being right.</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;14gpduck&gt; lol 10% of the attendees were named jason</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;11MikeFRobbins&gt; I think it was more like 35% of the attendees were named Jason</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;8ericcourville&gt; ## how do I convince my server admins to even look at hyper-v when they are so married to vmware</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;4Vern_Anderson&gt; ## has he ever played with Xen or KVM open sourced Hypervisors?</span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;4Vern_Anderson&gt; 22</span><a href="http://en.wikipedia.org/wiki/SCSI_RDMA_Protocol" style="text-decoration: none;"><span style="font-size: 13px; font-family: Verdana; color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">http://en.wikipedia.org/wiki/SCSI_RDMA_Protocol</span></a><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;"></span></p>
+<p dir="ltr" style="line-height: 1; margin: 4.5pt; text-indent: -4.5pt;"><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;">&lt;11MikeFRobbins&gt; Check out the uptime in this screenshot (on this production Hyper-V server): 22</span><a href="http://mikefrobbins.files.wordpress.com/2012/07/hyperv-uptime-162.jpg" style="text-decoration: none;"><span style="font-size: 13px; font-family: Verdana; color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">http://mikefrobbins.files.wordpress.com/2012/07/hyperv-uptime-162.jpg</span></a><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;"></span></p>
+<p><b style="font-family: 'Times New Roman'; font-size: medium; font-weight: normal;"><br /><span style="font-size: 13px; font-family: Verdana; vertical-align: baseline; white-space: pre-wrap;"></span></b></p>
+<h4 dir="ltr" style="line-height: 1; margin-top: 12pt; margin-bottom: 2pt;"><span style="font-size: 13px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">The Question &#8211; </span></h4>
+<ul style="margin-top: 0pt; margin-bottom: 0pt;">
+<li dir="ltr" style="list-style-type: disc; font-size: 19px; font-family: Verdana; background-color: transparent; font-weight: bold; vertical-align: baseline;">
+<p dir="ltr" style="line-height: 1; margin-top: 4.5pt; margin-bottom: 4.5pt; margin-right: 4.5pt;"><span style="font-size: 13px; font-weight: normal; vertical-align: baseline; white-space: pre-wrap;">Superhero: Daredevil</span></p>
+</li>
+</ul>
+<h2 dir="ltr" style="line-height: 1; margin-top: 18pt; margin-bottom: 4pt;"><span style="font-size: 19px; font-family: Verdana; background-color: transparent; vertical-align: baseline; white-space: pre-wrap;">Resources</span></h2>
+<ul style="margin-top: 0pt; margin-bottom: 0pt;">
+<li dir="ltr" style="list-style-type: disc; font-size: 13px; font-family: Verdana; vertical-align: baseline;"><a href="http://blogs.interfacett.com/how-use-powershell-check-slat-windows-8-hyper-v" style="text-decoration: none;"><span style="color: #1155cc; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;">How to use PowerShell to check for SLAT for Windows 8 Hyper-V</span></a></li>
+<li></li>
+</ul>
+<p><img src="http://feeds.feedburner.com/~r/Powerscripting/~4/vTj01I4hVYI" height="1" width="1"/></p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/23/use-powershell-to-get-name-and-ip-address-of-virtual-machines/' rel='bookmark' title='Use PowerShell to Get Name and IP Address of Virtual Machines'>Use PowerShell to Get Name and IP Address of Virtual Machines</a></li>
+<li><a href='http://powershell.org/wp/2013/01/17/starting-virtual-machines-for-wsus/' rel='bookmark' title='Starting virtual machines for WSUS'>Starting virtual machines for WSUS</a></li>
+<li><a href='http://powershell.org/wp/2009/04/14/get-scripting-podcast-episode-9-scott-herold-virtualization-ecoshell-initiative/' rel='bookmark' title='Get-Scripting Podcast Episode 9 &#8211; (Scott Herold &#8211; Virtualization EcoShell Initiative)'>Get-Scripting Podcast Episode 9 &#8211; (Scott Herold &#8211; Virtualization EcoShell Initiative)</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/JEwkqqWJXxY" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/02/episode-226-powerscripting-podcast-the-virtual-pc-guy-ben-armstrong-talks-virtualization-and-powershell/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+<enclosure url="http://feedproxy.google.com/~r/Powerscripting/~5/dEQ8AGqVMeg/PSPodcast-226.mp3" length="46195832" type="audio/mpeg" />
+		<feedburner:origLink>http://powershell.org/wp/2013/05/02/episode-226-powerscripting-podcast-the-virtual-pc-guy-ben-armstrong-talks-virtualization-and-powershell/</feedburner:origLink></item>
+		<item>
+		<title>Judge Notes for Event 1</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/gaMnxd2f5fU/</link>
+		<comments>http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/#comments</comments>
+		<pubDate>Thu, 02 May 2013 17:24:49 +0000</pubDate>
+		<dc:creator>Art Beane</dc:creator>
+				<category><![CDATA[PowerShell for Admins]]></category>
+		<category><![CDATA[destination folder]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3886</guid>
+		<description><![CDATA[Â A lot of you have been working too hard at solving the problem (both beginner and advanced). Some of this is clearly related to trying to offer a very complete solution but some look like attemptsÂ to write extra clever or elegant code. In the âreal worldâ, thereâs probably not enough time or interest in putting<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/04/20/advanced-practice-event/' rel='bookmark' title='Advanced Practice Event'>Advanced Practice Event</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-beginner-event-1/' rel='bookmark' title='2013 Scripting Games: Beginner Event 1'>2013 Scripting Games: Beginner Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Â A lot of you have been working too hard at solving the problem (both beginner and advanced). Some of this is clearly related to trying to offer a very complete solution but some look like attemptsÂ to write extra clever or elegant code. In the âreal worldâ, thereâs probably not enough time or interest in putting lots of effort into these extras. The minimum it takes to achieve the goal is most often good enough. Here are a couple of examples to illustrate this (with the intent of providing a learning opportunity).</p>
+<p>Working with the destination folder address.</p>
+<p>A common error here was missing the subdirectory. Most folks got this correct by using some version of <em>$_.FullName.Replace(âC:\Application\Logâ,â\\NASServer\Archivesâ)</em> or <em>Join-Path â\\NASServer\Archivesâ $_.Directory.Name</em>, but there were a number who just used the root destination folder name without looking for the subfolder. And some others had solutions that (although I thought were innovative), took too much effort. Among them are:</p><pre class="crayon-plain-tag">Join-Path â\\NASServer\Archivesâ ($_.Directory.Split(â\â)[-1])
+
+$_.FullName âReplace [regex]::Escape(âC:\Application\Logâ,â\\NASServer\Archivesâ)</pre><p>OnceÂ computing the destination, most solutions checked to see if the folder existed and created it if it was missing. But some just tried to create it anyway (too much effort) and others who did not (too little effort).</p>
+<p>Iâm not going to comment on the use of Copy-Object vs. Move-Object other than to say that (related to the destination folder) it looks like some people thought the cmdlets would create the path structure but never tested to see that they donât. Don&#8217;t forget to test your solution to verify that it works: working codeÂ is far more important that &#8220;pretty&#8221; or &#8220;elegant&#8221; code.</p>
+<p><strong>UsingÂ Try-Catch-Finally.</strong></p>
+<p>Try-Catch-Finally is an awesomely potent construct but you really need to understand how it works.Â Here&#8217;s why I think it isÂ serious overkill for this problem. Compare these:</p><pre class="crayon-plain-tag">If (-notÂ (Test-Path $DestinationFolder)) {New-Item âItemType Directory âPath $DestinationFolder}</pre><p></p><pre class="crayon-plain-tag">Try {Test-Path $DestinationFolder âErrorAction Stop} Catch {New-Item âItemType Directory âPath $DestinationFolder}</pre><p>Look the same, right? But they have very different results, not to mention different typing efforts. If the destination folder does not exist, then with IF, the folderÂ gets created, but with Try-Catch it will not. This is because Test-Path will return $false, but NO error, so the catch clause will never execute.</p>
+<p>Most folks understand that a terminating error has to occur in the Try script block in order for the Catch block to execute. But, instead of using the âErrorAction Stop parameter in the cmdlet, some of the solutions set $ErrorActionPreferenceÂ to Stop and then reset it to Continue in a Finally block. There are two problems with this. First, it forces every command in the Try block to generate terminating errors, when thereâs normally only one that youÂ care about. Second, $ErrorActionPreference might not have been originally set to Continue. Shouldnât the previous value be saved and then restored in Finally?</p>
+<p>So, going forward, think about how hard youâre working to get to an answer. Donât use a more complex method than you need to in order to solve a problem. Make good use of Get-Help to verify the parameters and outputs of the cmdlets that you use. And test your objects with Format-List and Get-Member to make sure that the properties really are what you think they are.</p>
+<p>&nbsp;</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/04/20/advanced-practice-event/' rel='bookmark' title='Advanced Practice Event'>Advanced Practice Event</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-beginner-event-1/' rel='bookmark' title='2013 Scripting Games: Beginner Event 1'>2013 Scripting Games: Beginner Event 1</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/gaMnxd2f5fU" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/02/judge-notes-for-event-1/</feedburner:origLink></item>
+		<item>
+		<title>Event 2 Opens / Event 1 Winding Down</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/UPmP3P8nXeU/</link>
+		<comments>http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/#comments</comments>
+		<pubDate>Thu, 02 May 2013 14:25:12 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[Scripting Games]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3882</guid>
+		<description><![CDATA[Event 2 is scheduled to open this evening in The Scripting Games &#8211; remember, all times on the Scripting Games Web site are GMT. You will need to adjust for your local time zone. Voting on Event 1 is scheduled to end on May 7th, so you still have 5 days to earn pointlets and<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/29/state-of-the-games/' rel='bookmark' title='State of the Games'>State of the Games</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/04/06/2013-scripting-games-mighty-panel-of-celebrity-judges/' rel='bookmark' title='2013 Scripting Games&#8217; Mighty Panel of Celebrity Judges'>2013 Scripting Games&#8217; Mighty Panel of Celebrity Judges</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Event 2 is scheduled to open this evening in The Scripting Games &#8211; <em>remember, all times on the <a href="http://scriptinggames.org/">Scripting Games Web site</a> are GMT. </em>You will need to adjust for your local time zone.</p>
+<p>Voting on Event 1 is scheduled to end on May 7th, so you still have 5 days to earn pointlets and leave comments for your colleagues. As of right now, we have over 330 entries, and an astounding 4,900 votes &#8211; an average ratio of more than 14 votes per entry. Folks, that&#8217;s <em>seven times more</em> than we&#8217;ve been able to provide in the past by just having &#8220;expert judges&#8221; voting.</p>
+<p>Those experts are now being put to better use, providing the learning experience we so much want to deliver. They&#8217;re posting in their own blogs (<a href="http://powershell.org/wp/the-scripting-games/scripting-games-judges-notes/">list</a>) as well as <a href="http://powershell.org/wp/category/announcements/scripting-games/judges-notes/">here on PowerShell.org</a>, and there&#8217;s a lot to read. I&#8217;m delighted that we&#8217;ve been able to provide so much commentary before Event 2 starts, since that&#8217;ll doubtlessly help everyone do better.</p>
+<p>The average CrowdScore is 2.551 per entry &#8211; obviously there&#8217;s everything from 1-point entries to 5-point entries. Folks are being pretty critical, and identifying things they don&#8217;t like, as well as things they do. With more than 1800 comments (that&#8217;s an average of more than 5 per entry), hopefully competitors are starting to get some take-aways from the community as well.</p>
+<p>On Mighty Panel of Celebrity Judges will start awarding first, second, and third place in Event 1 very soon, and that process will take a few days. Keep in mind that their decisions are in no way connected to the community-based CrowdScore. Instead, they&#8217;re exploring entries on their own, stating with the ones &#8220;favorited&#8221; by our expert commentary judges.</p>
+<p>Also, I&#8217;ve heard some concern about people trying to &#8220;cheat&#8221; the system by simply dropping in random votes in order to rack up pointlets and win prizes. We&#8217;re watching for that &#8211; we log IP addresses, vote times, and a lot of other data. We&#8217;ll be filtering the votes before awarding prizes, so there&#8217;s just no value in cheating.<em> You won&#8217;t see that filtering &#8211; </em>we&#8217;re doing it on an offline copy of the data so that there&#8217;s no chance of accidentally deleting anything valuable &#8211; but you&#8217;ll also be happy to know that, right now, there&#8217;s very little in the way of anything suspicious, and nothing that&#8217;s been confirmed.</p>
+<p>I want to re-emphasize that the CrowdScore activity doesn&#8217;t become a true learning experience until <em>after the Games are over, </em>which is when we can start mining that data and divining some crowdsourced best practices and patterns &#8211; creating our own community sense of &#8220;right and wrong&#8221; in PowerShell. I also want to point out that, after the Games, we&#8217;ll be posting all entries, and their comments, into easier-to-download archives (I know the Web site doesn&#8217;t make copy n paste super-easy; that&#8217;s largely an artifact of what we need to do to display things properly; we&#8217;re not offering downloads at this time mainly to control server load).</p>
+<p>Enjoy Event 2!</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/29/state-of-the-games/' rel='bookmark' title='State of the Games'>State of the Games</a></li>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/04/06/2013-scripting-games-mighty-panel-of-celebrity-judges/' rel='bookmark' title='2013 Scripting Games&#8217; Mighty Panel of Celebrity Judges'>2013 Scripting Games&#8217; Mighty Panel of Celebrity Judges</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/UPmP3P8nXeU" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/02/event-2-opens-event-1-winding-down/</feedburner:origLink></item>
+		<item>
+		<title>Few notes written after event 1.</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/Z3VoBdVKwM8/</link>
+		<comments>http://powershell.org/wp/2013/05/01/few-notes-written-after-event-1/#comments</comments>
+		<pubDate>Thu, 02 May 2013 06:48:11 +0000</pubDate>
+		<dc:creator>Bartek Bielawski</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3878</guid>
+		<description><![CDATA[As promised, today more general thoughts on scripts I&#8217;ve seen in both categories in the first event. I&#8217;m Polish, so I decided to blog notes both in my own language, and in English, &#8220;just in case&#8221;. Also, my Polish is much better than my English (I hope!), so for people from Poland: they can read<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/01/few-notes-written-after-event-1/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/' rel='bookmark' title='Scripting Games 2013: Thoughts After Event 1'>Scripting Games 2013: Thoughts After Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/20/advanced-practice-event/' rel='bookmark' title='Advanced Practice Event'>Advanced Practice Event</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>As promised, today more general thoughts on scripts I&#8217;ve seen in both categories in the first event. I&#8217;m Polish, so I decided to blog notes both in my own language, and in English, &#8220;just in case&#8221;. Also, my Polish is much better than my English (I hope!), so for people from Poland: they can read Polish version, without the pain of translating my-English to English-English. Enjoy!</p>
+<p><a title="My notes for 1st event - English" href="http://becomelotr.wordpress.com/2013/05/02/event-1-my-notes/" target="_blank">English version</a></p>
+<p><a title="Moje notatki - pierwsze konkurencja - po polsku" href="http://powershellpl.net/2013/05/02/scripting-games-moje-notatki-1/" target="_blank">Polish version</a></p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/' rel='bookmark' title='Scripting Games 2013: Thoughts After Event 1'>Scripting Games 2013: Thoughts After Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/20/advanced-practice-event/' rel='bookmark' title='Advanced Practice Event'>Advanced Practice Event</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/Z3VoBdVKwM8" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/01/few-notes-written-after-event-1/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/01/few-notes-written-after-event-1/</feedburner:origLink></item>
+		<item>
+		<title>Scripting Games 2013: Thoughts After Event 1</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/0-zcX8mb3s8/</link>
+		<comments>http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/#comments</comments>
+		<pubDate>Thu, 02 May 2013 02:21:16 +0000</pubDate>
+		<dc:creator>Boe Prox</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3870</guid>
+		<description><![CDATA[With Event 1 in the books for the 2013 Scripting Games, we are now in the voting period where the community gets the chance to play judge on all of the scripts submitted by voting and commenting on the submissions. I aim to take a look at the common items that pose problems and recommendations<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-advanced-event-1/' rel='bookmark' title='2013 Scripting Games: Advanced Event 1'>2013 Scripting Games: Advanced Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-beginner-event-1/' rel='bookmark' title='2013 Scripting Games: Beginner Event 1'>2013 Scripting Games: Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/03/2013-scripting-games-schedule/' rel='bookmark' title='2013 Scripting Games Schedule'>2013 Scripting Games Schedule</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>With Event 1 in the books for the 2013 Scripting Games, we are now in the voting period where the community gets the chance to play judge on all of the scripts submitted by voting and commenting on the submissions. I aim to take a look at the common items that pose problems and recommendations on what to do to fix this. The full article is available <a href="http://learn-powershell.net/2013/05/01/scripting-games-2013-thoughts-after-event-1/">here</a>.</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-advanced-event-1/' rel='bookmark' title='2013 Scripting Games: Advanced Event 1'>2013 Scripting Games: Advanced Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-beginner-event-1/' rel='bookmark' title='2013 Scripting Games: Beginner Event 1'>2013 Scripting Games: Beginner Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/03/2013-scripting-games-schedule/' rel='bookmark' title='2013 Scripting Games Schedule'>2013 Scripting Games Schedule</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/0-zcX8mb3s8" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/01/scripting-games-2013-thoughts-after-event-1/</feedburner:origLink></item>
+		<item>
+		<title>Do you really Support Should ProcessâŚ?</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/T5y147ufZTk/</link>
+		<comments>http://powershell.org/wp/2013/05/01/do-you-really-support-should-process/#comments</comments>
+		<pubDate>Wed, 01 May 2013 22:02:38 +0000</pubDate>
+		<dc:creator>Bartek Bielawski</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3866</guid>
+		<description><![CDATA[While working on my notes for first event of Scripting Games I was looking around what others wrote, and was surprised that people really think that enabling SupportsShouldProcess is good enough. In my opinion &#8211; it is not. And because this is relatively big topic I decided to write separate blog post just about that.<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/01/do-you-really-support-should-process/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/how-to-name-your-help-files/' rel='bookmark' title='How to Name Your Help Files'>How to Name Your Help Files</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-advanced-event-1/' rel='bookmark' title='2013 Scripting Games: Advanced Event 1'>2013 Scripting Games: Advanced Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/29/state-of-the-games/' rel='bookmark' title='State of the Games'>State of the Games</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>While working on my notes for first event of Scripting Games I was looking around what others wrote, and was surprised that people really think that enabling SupportsShouldProcess is good enough. In my opinion &#8211; it is not. And because this is relatively big topic I decided to write separate blog post just about that. You can find it <a title="Supports Should Process? Or maybe not? ;)" href="http://becomelotr.wordpress.com/2013/05/01/supports-should-process-oh-really/" target="_blank">here</a>. I hope it will highlight the difference between <strong>enabling</strong> this feature and actually <strong>implementing</strong>Â it. And remember: <strong>do not</strong>Â kill the messenger. <img src="http://powershell.powershellorginc.netdna-cdn.com/wp/wp-includes/images/smilies/icon_wink.gif?bb7cbb" alt=';)' class='wp-smiley' />  More from me (mainly on other topics related to first event) tomorrow.</p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/how-to-name-your-help-files/' rel='bookmark' title='How to Name Your Help Files'>How to Name Your Help Files</a></li>
+<li><a href='http://powershell.org/wp/2013/04/24/2013-scripting-games-advanced-event-1/' rel='bookmark' title='2013 Scripting Games: Advanced Event 1'>2013 Scripting Games: Advanced Event 1</a></li>
+<li><a href='http://powershell.org/wp/2013/04/29/state-of-the-games/' rel='bookmark' title='State of the Games'>State of the Games</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/T5y147ufZTk" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/01/do-you-really-support-should-process/feed/</wfw:commentRss>
+		<slash:comments>0</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/01/do-you-really-support-should-process/</feedburner:origLink></item>
+		<item>
+		<title>And the Norweigian judge saysâŚ</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/vQ4f9gaPrfc/</link>
+		<comments>http://powershell.org/wp/2013/05/01/and-the-norweigian-judge-says/#comments</comments>
+		<pubDate>Wed, 01 May 2013 20:22:12 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[Judges' Notes]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3855</guid>
+		<description><![CDATA[Jan Egil Ring weighs in with his thoughts on Event 1: http://blog.powershell.no/category/2013-Scripting-Games-Judges-Notes/feed/<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/06/2013-scripting-games-judges/' rel='bookmark' title='2013 Scripting Games Judges'>2013 Scripting Games Judges</a></li>
+<li><a href='http://powershell.org/wp/2013/04/18/scripting-games-competitor-guide-instructions-update/' rel='bookmark' title='Scripting Games Competitor Guide / Instructions Update'>Scripting Games Competitor Guide / Instructions Update</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/tobias-judge-notes/' rel='bookmark' title='Tobias&#8217; Judge Notes'>Tobias&#8217; Judge Notes</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>Jan Egil Ring weighs in with his thoughts on Event 1: <a href="http://blog.powershell.no/category/2013-Scripting-Games-Judges-Notes/feed/">http://blog.powershell.no/category/2013-Scripting-Games-Judges-Notes/feed/</a></p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/06/2013-scripting-games-judges/' rel='bookmark' title='2013 Scripting Games Judges'>2013 Scripting Games Judges</a></li>
+<li><a href='http://powershell.org/wp/2013/04/18/scripting-games-competitor-guide-instructions-update/' rel='bookmark' title='Scripting Games Competitor Guide / Instructions Update'>Scripting Games Competitor Guide / Instructions Update</a></li>
+<li><a href='http://powershell.org/wp/2013/05/01/tobias-judge-notes/' rel='bookmark' title='Tobias&#8217; Judge Notes'>Tobias&#8217; Judge Notes</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/vQ4f9gaPrfc" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/01/and-the-norweigian-judge-says/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/01/and-the-norweigian-judge-says/</feedburner:origLink></item>
+		<item>
+		<title>Why Doesnât My ValidateScript() work correctly?</title>
+		<link>http://feedproxy.google.com/~r/powershellfeed/~3/-Jksmm--SeY/</link>
+		<comments>http://powershell.org/wp/2013/05/01/why-doesnt-my-validatescript-work-correctly/#comments</comments>
+		<pubDate>Wed, 01 May 2013 13:52:06 +0000</pubDate>
+		<dc:creator>DonJ</dc:creator>
+				<category><![CDATA[FAQs]]></category>
+		<category><![CDATA[Judges' Notes]]></category>
+		<category><![CDATA[PowerShell for Admins]]></category>
+		<category><![CDATA[Tips and Tricks]]></category>
+		<category><![CDATA[default value]]></category>
+
+		<guid isPermaLink="false">http://powershell.org/wp/?p=3848</guid>
+		<description><![CDATA[I&#8217;ve received a few comments from folks after my observations on the Scripting Games Event 1. In those observations, I noted how much I loved: [ValidateScript({Test-Path $_})][string]$path As a way of testing to make sure your -Path parameter got a valid value, I love this. I&#8217;d never thought of it, and I plan to use<span class="continue-reading"> <a href="http://powershell.org/wp/2013/05/01/why-doesnt-my-validatescript-work-correctly/">Continue Reading &#187;</a></span><div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/01/10/powershell-screen-shots/' rel='bookmark' title='PowerShell Screen Shots'>PowerShell Screen Shots</a></li>
+<li><a href='http://powershell.org/wp/2012/01/25/powerse-2-7-kb-powershell-profile-does-not-load-on-startup/' rel='bookmark' title='PowerSE 2.7 KB: PowerShell profile does not load on startup'>PowerSE 2.7 KB: PowerShell profile does not load on startup</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+]]></description>
+				<content:encoded><![CDATA[<p>I&#8217;ve received a few comments from folks after my observations on the Scripting Games Event 1. In those observations, I noted how much I loved:</p>
+<p><strong>[ValidateScript({Test-Path $_})][string]$path</strong></p>
+<p>As a way of testing to make sure your -Path parameter got a valid value, I love this. I&#8217;d never thought of it, and I plan to use it in classes. I may write a book about it someday, or maybe even an ode. Seriously good logic. But&#8230; I also bemoaned some scripts that provided an additional Test-Path, in the script&#8217;s main body of code. Why have a redundant check?</p>
+<p>So, first, thanks for the e-mails you all sent. Second&#8230; please understand that I can&#8217;t respond to you all. I&#8217;ve got this full-time job thing, and I&#8217;ve <em>got</em> to do it or the grocery store will stop taking our checks. You&#8217;re <em>welcome</em> to drop comments here, and I <em>really appreciate</em> when you say stuff like, &#8220;can you explain ___ in a future post?&#8221; because it gives me ideas to write about. I just can&#8217;t get into private e-mail based education for a dozen folks. Teaching is kinda what I do for my job, so most of my time has to go to that.</p>
+<p>But &#8211; there&#8217;s a great teaching point here. Let&#8217;s take this example:</p>
+<p><a href="http://powershell.org/wp/wp-content/uploads/2013/05/valid-default-path.png?bb7cbb"><img class="alignnone size-full wp-image-3849" alt="valid-default-path" src="http://powershell.org/wp/wp-content/uploads/2013/05/valid-default-path.png?bb7cbb" width="834" height="645" /></a></p>
+<p>This works as you would hopefully expect. When given a valid path, it&#8217;s fine. When allowed to use a valid default, it&#8217;s fine. When given an invalid path, it barfs in the ValidateScript. Now look at the next example &#8211; which more closely approximates what people have been seeing in their Scripting Games scripts:</p>
+<p><a href="http://powershell.org/wp/wp-content/uploads/2013/05/invalid-default-path.png?bb7cbb"><img class="alignnone size-full wp-image-3850" alt="invalid-default-path" src="http://powershell.org/wp/wp-content/uploads/2013/05/invalid-default-path.png?bb7cbb" width="834" height="645" /></a></p>
+<p>In the Games, you were given a default path that <em>wasn&#8217;t valid on your computer. </em>So folks allowed their script to run with that default, and got errors, and were annoyed that ValidateScript() didn&#8217;t catch the problem.</p>
+<p>It never will.</p>
+<p>When you run a command, PowerShell goes through a process called parameter binding, wherein it attaches values to parameters and runs any declarative validation &#8211; like ValidateScript(). That validation will <em>always</em> catch invalid incoming data that&#8217;s been manually specified or sent in via the pipeline (for parameters that accept pipeline input). Because my -Path parameter wasn&#8217;t declared as mandatory, the validation routine will let me run the script and not specify -path.</p>
+<p><em>Then</em> the shell actually <em>runs</em> my code &#8211; and <em>that&#8217;s</em> when it assigns the default value to $path if one wasn&#8217;t specified on -path. Validation is over by this point, so an invalid default value will sneak by. The assumption by the shell is that <em>you&#8217;re</em> providing the default value, so <em>you&#8217;re </em>smart enough to provide a valid one. If you don&#8217;t, it&#8217;s your problem.</p>
+<p>So do you just add a second, in-code check for the parameter? I&#8217;d still say no. I really dislike redundancy. If you know, because of your situation, that you can&#8217;t rely on ValidateScript(), then don&#8217;t use it at all &#8211; one check should suffice, and if it needs to be in-code instead of declarative, that&#8217;s fine. What&#8217;d be nice is if there was a declarative way of specifying a default, like <strong>[Default('whatever')]</strong> that ran before the validation checks, but such a thing doesn&#8217;t exist. Frankly, you could probably argue that if you can&#8217;t guarantee the validity of a default, then you shouldn&#8217;t provide one &#8211; and I&#8217;d probably buy into that argument, and subscribe to your newsletter.</p>
+<p>In this case, the problem is entirely artificial. The default path value given to you in the Games scenario <em>is</em> valid <em>in the context of the Games; </em>it&#8217;s just when you test it on <em>your</em> system, <em>outside</em> that context, that a problem crops up.</p>
+<p>Hopefully this helps explain how the ValidateXXX() attributes work, and how they interact with other features, like a default value.</p>
+<p><em>Now</em> explain why this will never assign C:\ as a default value:</p>
+<p><strong>[Parameter(Mandatory=$True)][string]$path = &#8216;c:\&#8217;</strong></p>
+<div class='yarpp-related-rss'>
+<h3>Related posts:</h3><ol>
+<li><a href='http://powershell.org/wp/2013/04/30/thoughts-on-event-1-and-frankly-a-rant/' rel='bookmark' title='Thoughts on Event 1 &#8211; and, frankly, a rant.'>Thoughts on Event 1 &#8211; and, frankly, a rant.</a></li>
+<li><a href='http://powershell.org/wp/2013/01/10/powershell-screen-shots/' rel='bookmark' title='PowerShell Screen Shots'>PowerShell Screen Shots</a></li>
+<li><a href='http://powershell.org/wp/2012/01/25/powerse-2-7-kb-powershell-profile-does-not-load-on-startup/' rel='bookmark' title='PowerSE 2.7 KB: PowerShell profile does not load on startup'>PowerSE 2.7 KB: PowerShell profile does not load on startup</a></li>
+</ol>
+<img src='http://yarpp.org/pixels/1c05573929fdd92e60f7a38da6fe5f76'/>
+</div>
+<img src="http://feeds.feedburner.com/~r/powershellfeed/~4/-Jksmm--SeY" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://powershell.org/wp/2013/05/01/why-doesnt-my-validatescript-work-correctly/feed/</wfw:commentRss>
+		<slash:comments>4</slash:comments>
+		<feedburner:origLink>http://powershell.org/wp/2013/05/01/why-doesnt-my-validatescript-work-correctly/</feedburner:origLink></item>
+	</channel>
+</rss><!-- Performance optimized by W3 Total Cache. Learn more: http://www.w3-edge.com/wordpress-plugins/
+
+Page Caching using disk: enhanced
+Content Delivery Network via powershell.powershellorginc.netdna-cdn.com
+
+ Served from: powershell.org @ 2013-05-08 07:30:06 by W3 Total Cache -->
