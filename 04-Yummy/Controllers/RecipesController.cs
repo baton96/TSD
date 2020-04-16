@@ -22,25 +22,25 @@ namespace MVCRecipes.Controllers
         // GET: Recipes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Movie.ToListAsync());
+            return View(await _context.Recipe.ToListAsync());
         }
 
         // GET: Recipes/Search/5
         public async Task<IActionResult> Search()
         {
-            var allMovies = await _context.Movie.ToListAsync();
-            var filteredMovies = allMovies.AsEnumerable();
+            var allRecipes = await _context.Recipe.ToListAsync();
+            var filteredRecipes = allRecipes.AsEnumerable();
             var query = Request.Query;
-            if (query["name"].Count == 1) filteredMovies = allMovies.Where(x => x.Name.ToLower().Contains(query["name"].ToString().ToLower()));
-            if (query["time"].Count == 1) filteredMovies = allMovies.Where(x => x.Time == int.Parse(query["time"]));
-            if (query["difficulty"].Count == 1) filteredMovies = allMovies.Where(x => x.Difficulty == int.Parse(query["difficulty"]));
-            if (query["likes"].Count == 1) filteredMovies = allMovies.Where(x => x.Likes == int.Parse(query["likes"]));
+            if (query["name"].Count == 1) filteredRecipes = allRecipes.Where(x => x.Name.ToLower().Contains(query["name"].ToString().ToLower()));
+            if (query["time"].Count == 1) filteredRecipes = allRecipes.Where(x => x.Time == int.Parse(query["time"]));
+            if (query["difficulty"].Count == 1) filteredRecipes = allRecipes.Where(x => x.Difficulty == int.Parse(query["difficulty"]));
+            if (query["likes"].Count == 1) filteredRecipes = allRecipes.Where(x => x.Likes == int.Parse(query["likes"]));
             if (query["ingredients"].Count == 1)
-                filteredMovies = allMovies.Where(x =>
+                filteredRecipes = allRecipes.Where(x =>
                     x.Ingredients.ToLower().Contains(query["ingredients"].ToString().ToLower())
                 );
 
-            return View(filteredMovies);
+            return View(filteredRecipes);
         }
 
         // GET: Recipes/Details/5
@@ -51,7 +51,7 @@ namespace MVCRecipes.Controllers
                 return NotFound();
             }
 
-            var recipe = await _context.Movie
+            var recipe = await _context.Recipe
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (recipe == null)
             {
@@ -91,7 +91,7 @@ namespace MVCRecipes.Controllers
                 return NotFound();
             }
 
-            var recipe = await _context.Movie.FindAsync(id);
+            var recipe = await _context.Recipe.FindAsync(id);
             if (recipe == null)
             {
                 return NotFound();
@@ -142,7 +142,7 @@ namespace MVCRecipes.Controllers
                 return NotFound();
             }
 
-            var recipe = await _context.Movie
+            var recipe = await _context.Recipe
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (recipe == null)
             {
@@ -157,15 +157,15 @@ namespace MVCRecipes.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var recipe = await _context.Movie.FindAsync(id);
-            _context.Movie.Remove(recipe);
+            var recipe = await _context.Recipe.FindAsync(id);
+            _context.Recipe.Remove(recipe);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool RecipeExists(int id)
         {
-            return _context.Movie.Any(e => e.ID == id);
+            return _context.Recipe.Any(e => e.ID == id);
         }
     }
 }

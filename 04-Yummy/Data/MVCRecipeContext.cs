@@ -11,6 +11,6 @@ namespace MVCRecipes.Data
         {
         }
 
-        public DbSet<Recipe> Movie { get; set; }
+        public DbSet<Recipe> Recipe { get; set; }
     }
 }
