@@ -57,6 +57,31 @@ namespace MVCRecipes
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+                    name: "New",
+                    pattern: "Recipes/New",
+                    defaults: new { controller = "Recipes", action = "Create" });
+
+                endpoints.MapControllerRoute(
+                    name: "Remove",
+                    pattern: "Recipes/Remove/{id?}",
+                    defaults: new { controller = "Recipes", action = "Delete" });
+
+                endpoints.MapControllerRoute(
+                    name: "Item",
+                    pattern: "Recipes/Item/{id?}",
+                    defaults: new { controller = "Recipes", action = "Details" });
+
+                endpoints.MapControllerRoute(
+                    name: "Modify",
+                    pattern: "Recipes/Modify/{id?}",
+                    defaults: new { controller = "Recipes", action = "Edit" });
+
+                endpoints.MapControllerRoute(
+                    name: "Main",
+                    pattern: "Recipes/Main",
+                    defaults: new { controller = "Recipes", action = "Index" });
+
+                endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Recipes}/{action=Index}/{id?}");
             });

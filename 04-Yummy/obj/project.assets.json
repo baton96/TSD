@@ -8584,11 +8584,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\pc\\source\\repos\\MVCRecipes\\MVCRecipes.csproj",
+      "projectUniqueName": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\04-Yummy\\MVCRecipes.csproj",
       "projectName": "MVCRecipes",
-      "projectPath": "C:\\Users\\pc\\source\\repos\\MVCRecipes\\MVCRecipes.csproj",
+      "projectPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\04-Yummy\\MVCRecipes.csproj",
       "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\pc\\source\\repos\\MVCRecipes\\obj\\",
+      "outputPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\04-Yummy\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -8652,7 +8652,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.200\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.201\\RuntimeIdentifierGraph.json"
       }
     }
   }

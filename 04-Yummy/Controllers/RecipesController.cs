@@ -28,15 +28,17 @@ namespace MVCRecipes.Controllers
         // GET: Recipes/Search/5
         public async Task<IActionResult> Search()
         {
-            //string? name, int? time, int? difficulty, int? likes, string? ingredients, string? rocess
             var allMovies = await _context.Movie.ToListAsync();
             var filteredMovies = allMovies.AsEnumerable();
             var query = Request.Query;
-            if (query["name"].Count == 1) filteredMovies = allMovies.Where(x => x.Name.Contains(query["time"].ToString()));
-            if (query["time"].Count == 1) filteredMovies = allMovies.Where(x => x.Time == int.Parse(query["time"].ToString()));
-            if (query["difficulty"].Count == 1) filteredMovies = allMovies.Where(x => x.Difficulty == int.Parse(query["difficulty"].ToString()));
-            if (query["likes"].Count == 1) filteredMovies = allMovies.Where(x => x.Likes == int.Parse(query["likes"].ToString()));
-            //if (query["time"].Count == 1) filteredMovies = allMovies.Where(x => x.Time == time);
+            if (query["name"].Count == 1) filteredMovies = allMovies.Where(x => x.Name.ToLower().Contains(query["name"].ToString().ToLower()));
+            if (query["time"].Count == 1) filteredMovies = allMovies.Where(x => x.Time == int.Parse(query["time"]));
+            if (query["difficulty"].Count == 1) filteredMovies = allMovies.Where(x => x.Difficulty == int.Parse(query["difficulty"]));
+            if (query["likes"].Count == 1) filteredMovies = allMovies.Where(x => x.Likes == int.Parse(query["likes"]));
+            if (query["ingredients"].Count == 1)
+                filteredMovies = allMovies.Where(x =>
+                    x.Ingredients.ToLower().Contains(query["ingredients"].ToString().ToLower())
+                );
 
             return View(filteredMovies);
         }

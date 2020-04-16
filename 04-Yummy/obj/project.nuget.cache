@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "4dpb61haHvfLB+pnj2cFFefShdaILBq59eacdY6D/kq565VnVoIwn79iaJhRNvSOSE/dCjn8CdYVJ1DxBNiHBA==",
+  "dgSpecHash": "Sk+/7ej5exzAObx2OJrE/3u0RBh9O0dUIQAuPJ+l4sJ+JVFQK6pZOUJwHfb8WvMbuTZY89SK89hqL8o+k9uWSw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\pc\\source\\repos\\MVCRecipes\\MVCRecipes.csproj",
+  "projectFilePath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\04-Yummy\\MVCRecipes.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\pc\\.nuget\\packages\\microsoft.aspnetcore.html.abstractions\\2.2.0\\microsoft.aspnetcore.html.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\pc\\.nuget\\packages\\microsoft.aspnetcore.razor\\2.2.0\\microsoft.aspnetcore.razor.2.2.0.nupkg.sha512",
