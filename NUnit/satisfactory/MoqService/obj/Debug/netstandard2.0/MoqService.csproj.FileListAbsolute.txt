@@ -1,0 +1,17 @@
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/bin/Debug/netstandard2.0/MoqService.deps.json
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/bin/Debug/netstandard2.0/MoqService.dll
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/bin/Debug/netstandard2.0/MoqService.pdb
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/obj/Debug/netstandard2.0/MoqService.csprojAssemblyReference.cache
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/obj/Debug/netstandard2.0/MoqService.AssemblyInfoInputs.cache
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/obj/Debug/netstandard2.0/MoqService.AssemblyInfo.cs
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/obj/Debug/netstandard2.0/MoqService.dll
+/home/pmyszkow/master-degree/moq-test-suff/MoqService/obj/Debug/netstandard2.0/MoqService.pdb
+C:\Users\pc\Downloads\satisfactory\MoqService\bin\Debug\netstandard2.0\MoqService.deps.json
+C:\Users\pc\Downloads\satisfactory\MoqService\bin\Debug\netstandard2.0\MoqService.dll
+C:\Users\pc\Downloads\satisfactory\MoqService\bin\Debug\netstandard2.0\MoqService.pdb
+C:\Users\pc\Downloads\satisfactory\MoqService\obj\Debug\netstandard2.0\MoqService.csprojAssemblyReference.cache
+C:\Users\pc\Downloads\satisfactory\MoqService\obj\Debug\netstandard2.0\MoqService.csproj.CoreCompileInputs.cache
+C:\Users\pc\Downloads\satisfactory\MoqService\obj\Debug\netstandard2.0\MoqService.AssemblyInfoInputs.cache
+C:\Users\pc\Downloads\satisfactory\MoqService\obj\Debug\netstandard2.0\MoqService.AssemblyInfo.cs
+C:\Users\pc\Downloads\satisfactory\MoqService\obj\Debug\netstandard2.0\MoqService.dll
+C:\Users\pc\Downloads\satisfactory\MoqService\obj\Debug\netstandard2.0\MoqService.pdb
