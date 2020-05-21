@@ -25,14 +25,14 @@ namespace Account
 
         public Account(string name, decimal initialBalance)
         {
-            accountNumberSeed++;
+            Number = (accountNumberSeed++).ToString();
             Owner = name;
             allTransactions.Add(new Transaction(initialBalance));
         }
 
         public Account()
         {
-            accountNumberSeed++;
+            Number = (accountNumberSeed++).ToString();
             Owner = "";
         }
 
@@ -52,10 +52,6 @@ namespace Account
                 throw new ArgumentOutOfRangeException();
             }
             allTransactions.Add(new Transaction(-amount));
-        }
-        public static int GetAccountNumberSeed()
-        {
-            return accountNumberSeed;
         }
     }
 }

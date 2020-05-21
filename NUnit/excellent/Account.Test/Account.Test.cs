@@ -10,9 +10,9 @@ namespace Account.Test
         public void SeedIncrement_Test()
         {
             //TODO: accountNumberSeed is incremented after each Account initialization
-            int before = Account.GetAccountNumberSeed();
-            new Account();
-            Assert.AreEqual(before + 1, Account.GetAccountNumberSeed());
+            Account account1 = new Account();
+            Account account2 = new Account();
+            Assert.AreEqual(int.Parse(account1.Number) + 1, int.Parse(account2.Number));
         }
 
         [Test]

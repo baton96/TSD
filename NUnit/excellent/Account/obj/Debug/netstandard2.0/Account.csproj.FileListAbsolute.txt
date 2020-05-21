@@ -15,3 +15,12 @@ C:\Users\pc\Downloads\tdd\Account\obj\Debug\netstandard2.0\Account.AssemblyInfoI
 C:\Users\pc\Downloads\tdd\Account\obj\Debug\netstandard2.0\Account.AssemblyInfo.cs
 C:\Users\pc\Downloads\tdd\Account\obj\Debug\netstandard2.0\Account.dll
 C:\Users\pc\Downloads\tdd\Account\obj\Debug\netstandard2.0\Account.pdb
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\bin\Debug\netstandard2.0\Account.deps.json
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\bin\Debug\netstandard2.0\Account.dll
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\bin\Debug\netstandard2.0\Account.pdb
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\obj\Debug\netstandard2.0\Account.csprojAssemblyReference.cache
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\obj\Debug\netstandard2.0\Account.csproj.CoreCompileInputs.cache
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\obj\Debug\netstandard2.0\Account.AssemblyInfoInputs.cache
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\obj\Debug\netstandard2.0\Account.AssemblyInfo.cs
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\obj\Debug\netstandard2.0\Account.dll
+C:\Users\pc\Desktop\Bartek\uczelnia\8sem\tsd\TSD\NUnit\excellent\Account\obj\Debug\netstandard2.0\Account.pdb

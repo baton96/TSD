@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\pc\\Downloads\\tdd\\Account.Test\\Account.Test.csproj": {}
+    "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account.Test\\Account.Test.csproj": {}
   },
   "projects": {
-    "C:\\Users\\pc\\Downloads\\tdd\\Account.Test\\Account.Test.csproj": {
+    "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account.Test\\Account.Test.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\pc\\Downloads\\tdd\\Account.Test\\Account.Test.csproj",
+        "projectUniqueName": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account.Test\\Account.Test.csproj",
         "projectName": "Account.Test",
-        "projectPath": "C:\\Users\\pc\\Downloads\\tdd\\Account.Test\\Account.Test.csproj",
+        "projectPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account.Test\\Account.Test.csproj",
         "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\pc\\Downloads\\tdd\\Account.Test\\obj\\",
+        "outputPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account.Test\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -27,8 +27,8 @@
         "frameworks": {
           "netcoreapp3.1": {
             "projectReferences": {
-              "C:\\Users\\pc\\Downloads\\tdd\\Account\\Account.csproj": {
-                "projectPath": "C:\\Users\\pc\\Downloads\\tdd\\Account\\Account.csproj"
+              "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account\\Account.csproj": {
+                "projectPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account\\Account.csproj"
               }
             }
           }
@@ -74,14 +74,14 @@
         }
       }
     },
-    "C:\\Users\\pc\\Downloads\\tdd\\Account\\Account.csproj": {
+    "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account\\Account.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\pc\\Downloads\\tdd\\Account\\Account.csproj",
+        "projectUniqueName": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account\\Account.csproj",
         "projectName": "Account",
-        "projectPath": "C:\\Users\\pc\\Downloads\\tdd\\Account\\Account.csproj",
+        "projectPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account\\Account.csproj",
         "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\pc\\Downloads\\tdd\\Account\\obj\\",
+        "outputPath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\pc\\AppData\\Roaming\\NuGet\\NuGet.Config",

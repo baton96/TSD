@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "fD2qpVoF1drGJkAabOAdEzMQBle1yuwmNicl6BHNJxTk18qyS6x74PWVGARjhkx9DvydhFWDasVFuo62XvEFTg==",
+  "dgSpecHash": "wVuVqoIwFqIEMF2rwiMZDGWOMqC5JeGS8B3BM3QZo+8CEELIU1veS2JJIycvIeRqrNscviHXrQlk3gXlu0nr9w==",
   "success": true,
-  "projectFilePath": "C:\\Users\\pc\\Downloads\\tdd\\Account.Test\\Account.Test.csproj",
+  "projectFilePath": "C:\\Users\\pc\\Desktop\\Bartek\\uczelnia\\8sem\\tsd\\TSD\\NUnit\\excellent\\Account.Test\\Account.Test.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\pc\\.nuget\\packages\\microsoft.codecoverage\\16.4.0\\microsoft.codecoverage.16.4.0.nupkg.sha512",
     "C:\\Users\\pc\\.nuget\\packages\\microsoft.csharp\\4.0.1\\microsoft.csharp.4.0.1.nupkg.sha512",
